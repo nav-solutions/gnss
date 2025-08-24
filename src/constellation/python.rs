@@ -1,6 +1,6 @@
-use crate::prelude::Constellation;
 use pyo3::prelude::*;
 use std::str::FromStr;
+use crate::prelude::{Constellation, TimeScale};
 
 #[pymethods]
 impl Constellation {
@@ -17,13 +17,22 @@ impl Constellation {
         format!("{}", self)
     }
 
+    #[pyo3(name = "timescale")]
+    fn py_timescale(&self) -> PyResult<TimeScale> {
+        let ts = self.timescale().ok_or(
+            pyo3::exceptions::PyValueError::new_err(format!("timescale not defined"))
+        )?;
+
+        Ok(ts)
+    }
+
     #[getter]
-    fn get_constellation(&self) -> String {
+    fn py_get(&self) -> String {
         self.to_string()
     }
 
     #[setter]
-    fn set_constellation(&mut self, value: &str) -> PyResult<()> {
+    fn py_set(&mut self, value: &str) -> PyResult<()> {
         let constellation = Constellation::from_str(value).or(Err(
             pyo3::exceptions::PyValueError::new_err(format!("Unknown constellation: {}", value,)),
         ))?;

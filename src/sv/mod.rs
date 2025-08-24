@@ -42,6 +42,11 @@ pub enum ParsingError {
 }
 
 impl SV {
+    /// Creates a new [SV] from [Constellation] and PRN number.
+    pub fn new(constellation: Constellation, prn: u8) -> Self {
+        Self { constellation, prn }
+    }
+
     /// Returns the [Timescale] to which this satellite belongs to.
     /// ```
     /// extern crate gnss_rs as gnss;

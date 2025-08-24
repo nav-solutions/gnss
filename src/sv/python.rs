@@ -1,4 +1,4 @@
-use crate::{constellation::Constellation, prelude::SV};
+use crate::prelude::{Constellation, TimeScale, SV};
 use pyo3::prelude::*;
 use std::str::FromStr;
 
@@ -27,7 +27,7 @@ impl SV {
     ///     Some(launch_date));
     /// ```
     #[new]
-    pub fn new(constellation: &str, prn: u8) -> PyResult<Self> {
+    fn py_new(constellation: &str, prn: u8) -> PyResult<Self> {
         let constellation = Constellation::from_str(constellation).or(Err(
             pyo3::exceptions::PyValueError::new_err(format!(
                 "Unknown constellation: {}",
@@ -62,6 +62,15 @@ impl SV {
 
         self.constellation = constellation;
         Ok(())
+    }
+
+    #[pyo3(name = "timescale")]
+    fn py_timescale(&self) -> PyResult<TimeScale> {
+        let ts = self.timescale().ok_or(
+            pyo3::exceptions::PyValueError::new_err(format!("timescale not defined"))
+        )?;
+
+        Ok(ts)
     }
 
     fn __str__(&self) -> String {

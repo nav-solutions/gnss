@@ -23,7 +23,7 @@ Add "gnss" to your Cargo.toml
 gnss-rs = "2"
 ```
 
-Import "gnss-rs": 
+Import the library:
 
 ```rust
 extern crate gnss_rs as gnss;
@@ -40,10 +40,11 @@ use std::str::FromStr;
 use hifitime::TimeScale;
 
 let sv = SV::new(Constellation::GPS, 1);
+
 assert_eq!(sv.constellation, Constellation::GPS);
 assert_eq!(sv.prn, 1);
+
 assert_eq!(sv.timescale(), Some(TimeScale::GPST));
-assert_eq!(sv, sv!("G01"));
 
 // undefined launch date
 assert_eq!(sv.launch_date(), None);
@@ -68,6 +69,33 @@ let launch_date = Epoch::from_str("2021-11-01T00:00:00 UTC")
     .unwrap();
 
 assert_eq!(sv.launch_date(), Some(launch_date));
+```
+
+## Python support
+
+Install from pypi directly:
+
+```bash
+pip3 install gnss-rs
+```
+
+Python API
+
+```python
+from gnss_rs import SV
+
+g01 = SV("GPS", 10)
+
+assert g01.prn == 10
+assert g01.constellation == "GPS"
+assert g01.timescale() == "GPST"
+
+g01.constellation = "BDS"
+assert g01.constellation == "BDS"
+
+
+g01.constellation = "WAAS"
+assert g01.is_sbas()
 ```
 
 ## Other definitions and features

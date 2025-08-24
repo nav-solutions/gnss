@@ -22,7 +22,7 @@ domes = []
 cospar = []
 
 # Enable pythonized structures
-python = ["dep:pyo3"]
+python = ["dep:pyo3", "hifitime/python"]
 
 # This features provides a SBAS system selection helper
 # from actual Geo coordinates on the ground.
