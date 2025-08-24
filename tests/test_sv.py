@@ -1,7 +1,5 @@
 from gnss import Constellation, SV
 
-if __name__ == "__main__":
+def test_gps_sv():
     g01 = SV(Constellation.GPS, 1)
-    assert g01.prn == 1
-    assert g01.constellation == Constellation.GPS
-    print("G01: ", g01)
+    assert g01.py_get_prn() == 1

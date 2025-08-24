@@ -10,33 +10,33 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "python")]
-use pyo3::prelude::pyclass;
+use pyo3::prelude::*;
 
 #[cfg(feature = "python")]
 mod python;
 
-/// ̀Satellite Vehicle ([SV]) definition.
+/// [SV] (Satellite Vehicle) definition.
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "python", pyclass)]
-#[cfg_attr(feature = "python", pyo3(module = "gnss"))]
+// #[cfg_attr(feature = "python", pyo3(module = "gnss"))]
 pub struct SV {
     /// PRN identification number for this vehicle.
+    #[cfg_attr(feature = "python", pyo3(get))]
     pub prn: u8,
 
     /// [Constellation] to which this vehicle belongs to.
+    #[cfg_attr(feature = "python", pyo3(get))]
     pub constellation: Constellation,
 }
 
-/*
- * Database, built by build.rs, for detailed SBAS vehicle identification
- */
+// Database, built by build.rs, for detailed SBAS vehicle identification
 include!(concat!(env!("OUT_DIR"), "/sbas.rs"));
 
-/// ̀Parsing & identification related errors
-#[derive(Error, Debug, Clone, PartialEq)]
+/// Issues during parsing
+#[derive(Error, Debug)]
 pub enum ParsingError {
-    #[error("constellation parsing error")]
+    #[error("constellation parsing error: {0}")]
     ConstellationParsing(#[from] ConstellationParsingError),
 
     #[error("invalid PRN number")]

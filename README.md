@@ -4,6 +4,7 @@
 [![Rust](https://github.com/nav-solutions/gnss/actions/workflows/daily.yml/badge.svg)](https://github.com/nav-solutions/gnss/actions/workflows/daily.yml)
 [![crates.io](https://img.shields.io/crates/v/gnss-rs.svg)](https://crates.io/crates/gnss-rs)
 [![crates.io](https://docs.rs/gnss-rs/badge.svg)](https://docs.rs/gnss-rs)
+[![discord server](https://img.shields.io/discord/1209263839632424990?logo=discord)](https://discord.gg/EqhEBXBmJh)
 
 [![License](https://img.shields.io/badge/license-MPL_2.0-orange?style=for-the-badge&logo=mozilla)](https://github.com/nav-solutions/qc-traits/blob/main/LICENSE)
 

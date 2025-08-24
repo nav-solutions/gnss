@@ -32,14 +32,13 @@ impl SV {
         Self { prn, constellation }
     }
 
-    pub const fn prn(&self) -> u8 {
-        self.prn
-    }
+    // pub const fn py_get_prn(&self) -> u8 {
+    //     self.prn
+    // }
 
-    pub const fn constellation(&self) -> Constellation {
-        self.constellation
-    }
-
+    // pub const fn py_get_constellation(&self) -> Constellation {
+    //     self.constellation
+    // }
 
     fn __str__(&self) -> String {
         format!("{:x}{:02}", self.constellation, self.prn)
