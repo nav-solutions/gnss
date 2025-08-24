@@ -7,11 +7,12 @@
 
 [![License](https://img.shields.io/badge/license-MPL_2.0-orange?style=for-the-badge&logo=mozilla)](https://github.com/nav-solutions/qc-traits/blob/main/LICENSE)
 
-High level definitions to work with GNSS in Rust
+High level definitions to work with GNSS in Rust or Python
 
 + Space Vehicles definitions: `SV`
 + GNSS Constellations: `Constellation`
 + GNSS Timescales: `Constellation.timescale()`
++ Python casts using `python` feature
 
 ## Getting started
 
@@ -42,7 +43,9 @@ assert_eq!(sv.constellation, Constellation::GPS);
 assert_eq!(sv.prn, 1);
 assert_eq!(sv.timescale(), Some(TimeScale::GPST));
 assert_eq!(sv, sv!("G01"));
-assert_eq!(sv.launched_date(), None);
+
+// undefined launch date
+assert_eq!(sv.launch_date(), None);
 ```
 
 ## SBAS support
@@ -59,9 +62,11 @@ use hifitime::{Epoch, TimeScale};
 
 let sv = sv!("S23");
 assert_eq!(sv.constellation, Constellation::EGNOS);
-let launched_date = Epoch::from_str("2021-11-01T00:00:00 UTC")
+
+let launch_date = Epoch::from_str("2021-11-01T00:00:00 UTC")
     .unwrap();
-assert_eq!(sv.launched_date(), Some(launched_date));
+
+assert_eq!(sv.launch_date(), Some(launch_date));
 ```
 
 ## Other definitions and features

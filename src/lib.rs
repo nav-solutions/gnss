@@ -17,14 +17,19 @@ pub mod cospar;
 #[cfg(feature = "domes")]
 pub mod domes;
 
-// prelude (pkg)
+#[cfg(feature = "python")]
+mod python;
+
 pub mod prelude {
-    pub use crate::constellation::Constellation;
+    pub use crate::{constellation::Constellation, sv::SV};
+
     #[cfg(feature = "cospar")]
     pub use crate::cospar::COSPAR;
+
     #[cfg(feature = "domes")]
     pub use crate::domes::{TrackingPoint as DOMESTrackingPoint, DOMES};
-    pub use crate::sv::SV;
+
+    pub use hifitime::prelude::{Epoch, TimeScale};
 }
 
 // private modules

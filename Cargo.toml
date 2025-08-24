@@ -1,6 +1,6 @@
 [package]
 name = "gnss-rs"
-version = "2.4.1"
+version = "2.5.0"
 license = "MPL-2.0"
 authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
 description = "GNSS constellations"
@@ -21,17 +21,12 @@ domes = []
 # Enable COSPAR (Vehicle Launch #ID) definition
 cospar = []
 
-# SBAS (GEO) vehicules definitions are built-in this library.
-# This feature unlocks the definition of a database  of projected areas covered 
-# by SBAS services, all around the globe, in the form of GEO/WKT frames.
-sbas = ["geo", "wkt"]
+# Enable pythonized structures
+python = ["pyo3/extension-module"]
 
-# Enable all features at once
-full = [
-    "cospar",
-    "domes",
-    "sbas",
-]
+# This features provides a SBAS system selection helper
+# from actual Geo coordinates on the ground.
+sbas = ["geo", "wkt"]
 
 [package.metadata.docs.rs]
 all-features = true
@@ -45,6 +40,11 @@ serde = { version = "1", default-features = false, features = ["derive"] }
 thiserror = "2"
 hifitime = "4.1"
 lazy_static = "1.5"
+
+pyo3 = { version = "0.25", features = [
+    "multiple-pymethods",
+], optional = true }
+
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 
 geo = { version = "0.29", optional = true }

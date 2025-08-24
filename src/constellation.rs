@@ -1,9 +1,12 @@
-//! GNSS constellations
+//! Constellation definition
 use hifitime::TimeScale;
 use thiserror::Error;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "python")]
+use pyo3::prelude::pyclass;
 
 /// Constellation parsing & identification related errors
 #[derive(Error, Clone, Debug, PartialEq)]
@@ -15,51 +18,76 @@ pub enum ParsingError {
 /// Describes all known `GNSS` constellations
 #[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "python", pyclass)]
+#[cfg_attr(feature = "python", pyo3(module = "gnss"))]
 pub enum Constellation {
-    /// `GPS` american constellation,
+    /// [Self::GPS] american constellation
     #[default]
     GPS,
-    /// `Glonass` russian constellation
+
+    /// [Self::Glonass] russian constellation
     Glonass,
-    /// `BeiDou` chinese constellation
+
+    /// [Self::BeiDou] chinese constellation.
+    /// This constellation contains both IGSO, GEO and standard
+    /// orbits. Yet a SBAS augmentation also exists and is defined here.
+    /// It is not clear whether BeiDou GEO vehicles belon to [Self::BDSBAS] yet.
     BeiDou,
-    /// `QZSS` japanese constellation
+
+    /// [Self::QZSS] japanese constellation
     QZSS,
-    /// `Galileo` european constellation
+
+    /// [Self::Galileo] european constellation
     Galileo,
-    /// `IRNSS` constellation, renamed "NavIC"
+
+    /// [Self::IRNSS] constellation, renamed "NavIC"
     IRNSS,
-    /// American augmentation system,
+
+    /// [Self::WAAS] american augmentation system
     WAAS,
-    /// European augmentation system
+
+    /// [Self::EGNOS] european augmentation system
     EGNOS,
-    /// Japanese MTSAT Space Based augmentation system
+
+    /// [Self::MSAS] japanese augmentation system
     MSAS,
-    /// Indian augmentation system
+
+    /// [Self::GAGAN] indian augmentation system
     GAGAN,
-    /// Chinese augmentation system
+
+    /// [Self::BDSBAS] chinese augmentation system.
     BDSBAS,
-    /// South Korean augmentation system
+
+    /// [Self::KASS] south Korean augmentation system
     KASS,
-    /// Russian augmentation system
+
+    /// [Self::SDCM] russian augmentation system
     SDCM,
-    /// South African augmentation system
+
+    /// [Self::ASBAS] south-african augmentation system
     ASBAS,
-    /// Autralia / NZ augmentation system
+
+    /// [Self::SPAN] australian / NZ augmentation system
     SPAN,
-    /// SBAS is used to describe SBAS (augmentation)
-    /// vehicles without much more information
+
+    /// Generic [Self::SBAS] is used to describe SBAS
+    /// systems undefined in this database.
     SBAS,
-    /// Australia-NZ Geoscience system
+
+    /// [Self::AusNZ] australian / NZ geoscience system
     AusNZ,
-    /// Group Based SBAS
+
+    /// [Self::GBAS] UK augmentation system
     GBAS,
-    /// Nigerian SBAS
+
+    /// [Self::NSAS] nigerian augmentation system
     NSAS,
-    /// Algerian SBAS
+
+    /// [Self::ASAL] algerian augmentation system
     ASAL,
-    /// `Mixed` for Mixed constellations
-    /// RINEX files description
+
+    /// [Self::MIXED] is used to describe products or datasets
+    /// that contain several [Constellation]s.
     Mixed,
 }
 
@@ -92,7 +120,7 @@ impl std::fmt::Display for Constellation {
 }
 
 impl Constellation {
-    /// Returns true if Self is an augmentation system
+    /// Returns true if this [Constellation] is an augmentation system
     pub fn is_sbas(&self) -> bool {
         matches!(
             *self,
@@ -111,9 +139,11 @@ impl Constellation {
                 | Constellation::SBAS
         )
     }
+
     pub(crate) fn is_mixed(&self) -> bool {
         *self == Constellation::Mixed
     }
+
     /// Returns associated time scale. Returns None
     /// if related time scale is not supported.
     pub fn timescale(&self) -> Option<TimeScale> {
