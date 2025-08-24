@@ -19,14 +19,12 @@ mod python;
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "python", pyclass)]
-// #[cfg_attr(feature = "python", pyo3(module = "gnss"))]
+#[cfg_attr(feature = "python", pyo3(module = "gnss"))]
 pub struct SV {
     /// PRN identification number for this vehicle.
-    #[cfg_attr(feature = "python", pyo3(get))]
     pub prn: u8,
 
     /// [Constellation] to which this vehicle belongs to.
-    #[cfg_attr(feature = "python", pyo3(get))]
     pub constellation: Constellation,
 }
 
@@ -88,11 +86,7 @@ impl SV {
 
 impl std::str::FromStr for SV {
     type Err = ParsingError;
-    /*
-     * Parse SV from "XYY" standardized format.
-     * On "sbas" crate feature, we have the ability to identify
-     * vehicles in detail. For example S23 is Eutelsat 5WB.
-     */
+
     fn from_str(string: &str) -> Result<Self, Self::Err> {
         let constellation = Constellation::from_str(&string[0..1])?;
 
@@ -101,7 +95,8 @@ impl std::str::FromStr for SV {
             .parse::<u8>()
             .or(Err(ParsingError::InvalidPRN))?;
 
-        let mut ret = SV::new(constellation, prn);
+        let mut ret = SV { constellation, prn };
+
         if constellation.is_sbas() {
             // map the SXX to meaningful SBAS
             if let Some(sbas) = SV::sbas_definitions(prn) {
@@ -110,6 +105,7 @@ impl std::str::FromStr for SV {
                 ret.constellation = Constellation::from_str(sbas.constellation).unwrap();
             }
         }
+
         Ok(ret)
     }
 }

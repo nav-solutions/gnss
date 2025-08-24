@@ -8,6 +8,9 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "python")]
 use pyo3::prelude::pyclass;
 
+#[cfg(feature = "python")]
+mod python;
+
 /// Constellation parsing & identification related errors
 #[derive(Error, Clone, Debug, PartialEq)]
 pub enum ParsingError {
@@ -15,7 +18,7 @@ pub enum ParsingError {
     Unknown(String),
 }
 
-/// Describes all known `GNSS` constellations
+/// [Constellation] describes all known `GNSS` systems.
 #[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "python", pyclass)]
@@ -141,7 +144,7 @@ impl Constellation {
     }
 
     pub(crate) fn is_mixed(&self) -> bool {
-        *self == Constellation::Mixed
+        matches!(self, Constellation::Mixed)
     }
 
     /// Returns associated time scale. Returns None
@@ -204,9 +207,7 @@ impl std::str::FromStr for Constellation {
 }
 
 impl std::fmt::LowerHex for Constellation {
-    /*
-     * {:x}: formats Self as single letter standard code
-     */
+    /// Formats this [Constellation] using a single letter.
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Self::GPS => write!(f, "G"),
@@ -229,9 +230,7 @@ impl std::fmt::LowerHex for Constellation {
 }
 
 impl std::fmt::UpperHex for Constellation {
-    /*
-     * {:X} formats Self as 3 letter standard code
-     */
+    /// Formats this [Constellation] using a standard 3 letter code.
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Self::GPS => write!(f, "GPS"),
@@ -264,6 +263,7 @@ mod tests {
     use super::*;
     use hifitime::TimeScale;
     use std::str::FromStr;
+
     #[test]
     fn from_str() {
         for (desc, expected) in vec![
@@ -298,6 +298,7 @@ mod tests {
             assert!(Constellation::from_str(desc).is_err());
         }
     }
+
     #[test]
     fn format() {
         for (constell, expected) in [
@@ -313,12 +314,14 @@ mod tests {
             assert_eq!(constell.to_string(), expected);
         }
     }
+
     #[test]
     fn test_sbas() {
         for sbas in ["WAAS", "KASS", "EGNOS", "ASBAS", "MSAS", "GAGAN", "ASAL"] {
             assert!(Constellation::from_str(sbas).unwrap().is_sbas());
         }
     }
+
     #[test]
     fn timescale() {
         for (gnss, expected) in [

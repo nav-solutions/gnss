@@ -1,6 +1,5 @@
-use pyo3::prelude::*;
-
 use crate::prelude::{Constellation, SV};
+use pyo3::prelude::*;
 
 #[pymodule]
 fn gnss(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {

@@ -1,7 +1,6 @@
 use crate::{constellation::Constellation, prelude::SV};
-
 use pyo3::prelude::*;
-// use pyo3::types::PyType;
+use std::str::FromStr;
 
 #[pymethods]
 impl SV {
@@ -28,17 +27,42 @@ impl SV {
     ///     Some(launch_date));
     /// ```
     #[new]
-    pub const fn new(constellation: Constellation, prn: u8) -> Self {
-        Self { prn, constellation }
+    pub fn new(constellation: &str, prn: u8) -> PyResult<Self> {
+        let constellation = Constellation::from_str(constellation).or(Err(
+            pyo3::exceptions::PyValueError::new_err(format!(
+                "Unknown constellation: {}",
+                constellation,
+            )),
+        ))?;
+
+        Ok(Self { prn, constellation })
     }
 
-    // pub const fn py_get_prn(&self) -> u8 {
-    //     self.prn
-    // }
+    #[getter(prn)]
+    fn get_prn(&self) -> PyResult<u8> {
+        Ok(self.prn)
+    }
 
-    // pub const fn py_get_constellation(&self) -> Constellation {
-    //     self.constellation
-    // }
+    #[setter(prn)]
+    fn set_prn(&mut self, value: u8) -> PyResult<()> {
+        self.prn = value;
+        Ok(())
+    }
+
+    #[getter(constellation)]
+    fn get_constellation(&self) -> String {
+        self.constellation.to_string()
+    }
+
+    #[setter(constellation)]
+    fn set_constellation(&mut self, value: &str) -> PyResult<()> {
+        let constellation = Constellation::from_str(value).or(Err(
+            pyo3::exceptions::PyValueError::new_err(format!("Unknown constellation: {}", value,)),
+        ))?;
+
+        self.constellation = constellation;
+        Ok(())
+    }
 
     fn __str__(&self) -> String {
         format!("{:x}{:02}", self.constellation, self.prn)
