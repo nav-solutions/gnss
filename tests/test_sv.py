@@ -11,3 +11,4 @@ def test_gps_sv():
 
     g01.constellation = "BeiDou"
     assert g01.constellation == "BDS"
+    assert g01.timescale() == TimeScale.BDT
