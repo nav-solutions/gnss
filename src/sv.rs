@@ -1,10 +1,15 @@
-//! Space vehicles
-use crate::constellation::Constellation;
+//! Space vehicle definition
 use hifitime::{Epoch, TimeScale};
 use thiserror::Error;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+
+use crate::constellation::{Constellation, ParsingError as ConstellationParsingError};
+
+use std::num::ParseIntError;
+
+use std::str::FromStr;
 
 /// ̀SV describes a Satellite Vehicle
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -21,22 +26,22 @@ pub struct SV {
  */
 include!(concat!(env!("OUT_DIR"), "/sbas.rs"));
 
-/// ̀Parsing & identification related errors
+/// ̀[SV] parsing related issues.
 #[derive(Error, Debug, Clone, PartialEq)]
 pub enum ParsingError {
-    #[error("constellation parsing error")]
-    ConstellationParsing(#[from] crate::constellation::ParsingError),
-    #[error("sv prn# parsing error")]
-    PRNParsing(#[from] std::num::ParseIntError),
+    #[error("constellation parsing error: {0}")]
+    ConstellationParsing(#[from] ConstellationParsingError),
+
+    #[error("satellite number parsing error: {0}")]
+    PRNParsing(#[from] ParseIntError),
 }
 
 impl SV {
-    /// Builds a new SV
+    /// Builds a new Satellite Vehicle ([SV])
     /// ```
-    /// extern crate gnss_rs as gnss;
+    /// use gnss_rs::sv;
+    /// use gnss_rs::prelude::*;
     ///
-    /// use gnss::sv;
-    /// use gnss::prelude::*;
     /// use std::str::FromStr;
     /// use hifitime::{TimeScale, Epoch};
     ///
@@ -48,14 +53,29 @@ impl SV {
     ///
     /// let launched_date = Epoch::from_str("2021-11-01T00:00:00 UTC")
     ///     .unwrap();
+    ///
     /// assert_eq!(
     ///     sv!("S23").launched_date(),
     ///     Some(launched_date));
     /// ```
-    pub const fn new(constellation: Constellation, prn: u8) -> Self {
-        Self { prn, constellation }
+    pub fn new(constellation: Constellation, prn: u8) -> Self {
+        if constellation.is_sbas() {
+            // possible details
+            if let Some(definition) = Self::sbas_definitions(prn + 100) {
+                if let Ok(constellation) = Constellation::from_str(definition.constellation) {
+                    Self { prn, constellation }
+                } else {
+                    Self { prn, constellation }
+                }
+            } else {
+                Self { prn, constellation }
+            }
+        } else {
+            Self { prn, constellation }
+        }
     }
-    /// Returns the Timescale to which this SV belongs to.
+
+    /// Returns [Timescale] to which [Self] belongs to.
     /// ```
     /// extern crate gnss_rs as gnss;
     ///
@@ -70,6 +90,7 @@ impl SV {
     pub fn timescale(&self) -> Option<TimeScale> {
         self.constellation.timescale()
     }
+
     /*
      * Tries to retrieve SBAS detailed definitions for self.
      * For that, we use the PRN number, add +100 (SBAS def.) and use it
@@ -82,8 +103,9 @@ impl SV {
             .filter(|e| e.prn == to_find)
             .reduce(|e, _| e)
     }
-    /// Returns datetime at which Self was either launched or its serviced was deployed.
-    /// This only applies to SBAS vehicles. Datetime expressed as [Epoch] at midnight UTC.
+
+    /// Returns launch date and time expressed as UTC [Epoch].  
+    /// This API is limited to [Constellation::SBAS] vehicles for which we store more details.
     pub fn launched_date(&self) -> Option<Epoch> {
         let definition = SV::sbas_definitions(self.prn)?;
         Some(Epoch::from_gregorian_utc_at_midnight(
@@ -92,7 +114,8 @@ impl SV {
             definition.launched_day,
         ))
     }
-    /// Returns True if Self is a BeiDou geostationnary vehicle
+
+    /// Returns True if [Self] is a [Constellation::BeiDou] geostationnary vehicle
     pub fn is_beidou_geo(&self) -> bool {
         self.constellation == Constellation::BeiDou && (self.prn < 6 || self.prn > 58)
     }

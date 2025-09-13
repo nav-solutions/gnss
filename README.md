@@ -98,4 +98,4 @@ Amongst them, be sure to checkout:
 ## License
 
 This library is part of the [NAV-Solutions framework](https://github.com/nav-solutions) which
-is delivered under the [Mozilla V2 Public](https://www.mozilla.org/en-US/MPL/2.0) license.
+is licensed under [Mozilla V2 Public](https://www.mozilla.org/en-US/MPL/2.0) license.
