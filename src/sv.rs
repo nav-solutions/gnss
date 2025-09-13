@@ -37,7 +37,9 @@ pub enum ParsingError {
 }
 
 impl SV {
-    /// Builds a new Satellite Vehicle ([SV])
+    /// Builds desired Satellite Vehicle ([SV]) regardless of the
+    /// both field values. Prefer [Self::new_sbas] to conveniently
+    /// idenfity geostationnary vehicles.
     /// ```
     /// use gnss_rs::sv;
     /// use gnss_rs::prelude::*;
@@ -45,33 +47,51 @@ impl SV {
     /// use std::str::FromStr;
     /// use hifitime::{TimeScale, Epoch};
     ///
+    /// // This method lets you construct satellites that may not exist
     /// let sv = SV::new(Constellation::GPS, 1);
+    ///
     /// assert_eq!(sv.constellation, Constellation::GPS);
     /// assert_eq!(sv.prn, 1);
-    /// assert_eq!(sv, sv!("G01"));
-    /// assert_eq!(sv.launched_date(), None);
-    ///
-    /// let launched_date = Epoch::from_str("2021-11-01T00:00:00 UTC")
-    ///     .unwrap();
-    ///
-    /// assert_eq!(
-    ///     sv!("S23").launched_date(),
-    ///     Some(launched_date));
+    /// assert_eq!(sv.launch_date(), None); // only for SBAS vehicles
     /// ```
-    pub fn new(constellation: Constellation, prn: u8) -> Self {
-        if constellation.is_sbas() {
-            // possible details
-            if let Some(definition) = Self::sbas_definitions(prn + 100) {
-                if let Ok(constellation) = Constellation::from_str(definition.constellation) {
-                    Self { prn, constellation }
-                } else {
-                    Self { prn, constellation }
-                }
-            } else {
-                Self { prn, constellation }
-            }
+    pub const fn new(constellation: Constellation, prn: u8) -> Self {
+        Self { prn, constellation }
+    }
+
+    /// Tries to identify this [Constellation::SBAS] satellite from
+    /// a PRN number ranging from 0..100 (RINEX like format).
+    /// Simply substract 100 to the true satellite ID number.
+    ///
+    /// ```
+    /// use gnss_rs::sv;
+    /// use gnss_rs::prelude::*;
+    ///
+    /// use std::str::FromStr;
+    /// use hifitime::{TimeScale, Epoch, MonthName};
+    ///
+    /// // This only works if satellite do exist in our database
+    /// assert!(SV::new_sbas(1).is_none());
+    ///
+    /// let egnos_geo23 = SV::new_sbas(23)
+    ///     .unwrap(); // GEO #123
+    ///
+    /// assert_eq!(egnos_geo23.prn, 23);
+    /// assert!(egnos_geo23.constellation.is_sbas()); // obviously
+    /// assert_eq!(egnos_geo23.constellation, Constellation::EGNOS); // smart builder
+    ///
+    /// let launch_date = egnos_geo23.launch_date()
+    ///     .unwrap(); // only for detailed SBAS
+    ///
+    /// assert_eq!(launch_date.year(), 2021);
+    /// assert_eq!(launch_date.month_name(), MonthName::November);
+    /// ```
+    pub fn new_sbas(prn: u8) -> Option<Self> {
+        let definition = Self::sbas_definitions(prn)?;
+
+        if let Ok(constellation) = Constellation::from_str(definition.constellation) {
+            Some(Self { prn, constellation })
         } else {
-            Self { prn, constellation }
+            None
         }
     }
 
@@ -91,11 +111,8 @@ impl SV {
         self.constellation.timescale()
     }
 
-    /*
-     * Tries to retrieve SBAS detailed definitions for self.
-     * For that, we use the PRN number, add +100 (SBAS def.) and use it
-     * as an identifier
-     */
+    /// Explores SBAS detail database and tries to provide more detail from unique
+    /// PRN number (+100).
     pub(crate) fn sbas_definitions(prn: u8) -> Option<&'static SBASHelper<'static>> {
         let to_find = (prn as u16) + 100;
         SBAS_VEHICLES
@@ -106,12 +123,13 @@ impl SV {
 
     /// Returns launch date and time expressed as UTC [Epoch].  
     /// This API is limited to [Constellation::SBAS] vehicles for which we store more details.
-    pub fn launched_date(&self) -> Option<Epoch> {
+    pub fn launch_date(&self) -> Option<Epoch> {
         let definition = SV::sbas_definitions(self.prn)?;
+
         Some(Epoch::from_gregorian_utc_at_midnight(
-            definition.launched_year,
-            definition.launched_month,
-            definition.launched_day,
+            definition.launch_year,
+            definition.launch_month,
+            definition.launch_day,
         ))
     }
 
@@ -256,9 +274,9 @@ mod test {
 
             /* verify launch date */
             let _ = Epoch::from_gregorian_utc_at_midnight(
-                sbas.launched_year,
-                sbas.launched_month,
-                sbas.launched_day,
+                sbas.launch_year,
+                sbas.launch_month,
+                sbas.launch_day,
             );
         }
     }

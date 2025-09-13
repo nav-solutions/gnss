@@ -14,7 +14,7 @@ fn default_launch_day() -> u8 {
 
 /*
  * We use an intermediate struct
- * and "serde" to allow not to describe the launched
+ * and "serde" to allow not to describe the launch
  * day or month for example
  */
 #[derive(Deserialize)]
@@ -23,10 +23,10 @@ struct SBASDBEntry<'a> {
     pub prn: u16,
     pub id: &'a str,
     #[serde(default = "default_launch_month")]
-    pub launched_month: u8,
+    pub launch_month: u8,
     #[serde(default = "default_launch_day")]
-    pub launched_day: u8,
-    pub launched_year: i32,
+    pub launch_day: u8,
+    pub launch_year: i32,
 }
 
 fn build_sbas_helper() {
@@ -46,9 +46,9 @@ pub struct SBASHelper<'a> {
     constellation: &'a str,
     prn: u16,
     id: &'a str,
-    launched_day: u8,
-    launched_month: u8,
-    launched_year: i32,
+    launch_day: u8,
+    launch_month: u8,
+    launch_year: i32,
 }
 
 lazy_static! {
@@ -64,11 +64,11 @@ lazy_static! {
                 constellation: \"{}\",
                 prn: {},
                 id: \"{}\",
-                launched_year: {},
-                launched_month: {},
-                launched_day: {}
+                launch_year: {},
+                launch_month: {},
+                launch_day: {}
             }},",
-                e.constellation, e.prn, e.id, e.launched_year, e.launched_month, e.launched_day,
+                e.constellation, e.prn, e.id, e.launch_year, e.launch_month, e.launch_day,
             )
             .as_bytes(),
         )
