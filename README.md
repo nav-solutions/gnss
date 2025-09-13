@@ -29,39 +29,51 @@ extern crate gnss_rs as gnss;
 
 ## Space Vehicles
 
+A small library to define and handle satellite vehicles and constellation.  
+
 ```rust
-extern crate gnss_rs as gnss;
+use gnss_rs::sv;
+use gnss_rs::prelude::*;
 
-use gnss::sv;
-use gnss::prelude::*;
 use std::str::FromStr;
-use hifitime::TimeScale;
+use hifitime::{TimeScale, Epoch};
 
+// This method lets you construct satellites that may not exist
 let sv = SV::new(Constellation::GPS, 1);
+
 assert_eq!(sv.constellation, Constellation::GPS);
 assert_eq!(sv.prn, 1);
-assert_eq!(sv.timescale(), Some(TimeScale::GPST));
-assert_eq!(sv, sv!("G01"));
-assert_eq!(sv.launched_date(), None);
+assert_eq!(sv.launch_date(), None); // only for SBAS vehicles
 ```
 
-## SBAS support
+## SBAS (Geostationary) vehicles
 
-We support SBAS (geostationary augmentations) systems. 
-
+The library integrates a smart SBAS constellation identifier. We use the RINEX
+convention (PRN ranging from 0..100), therefore the true satellite number
+of SBAS vehicles is the PRN we use +100.
+    
 ```rust
-extern crate gnss_rs as gnss;
+use gnss_rs::sv;
+use gnss_rs::prelude::*;
 
-use gnss::sv;
-use gnss::prelude::*;
 use std::str::FromStr;
-use hifitime::{Epoch, TimeScale};
+use hifitime::{TimeScale, Epoch, MonthName};
 
-let sv = sv!("S23");
-assert_eq!(sv.constellation, Constellation::EGNOS);
-let launched_date = Epoch::from_str("2021-11-01T00:00:00 UTC")
-    .unwrap();
-assert_eq!(sv.launched_date(), Some(launched_date));
+// This only works if satellite do exist in our database
+assert!(SV::new_sbas(1).is_none());
+
+let egnos_geo23 = SV::new_sbas(23)
+    .unwrap(); // GEO #123
+
+assert_eq!(egnos_geo23.prn, 23);
+assert!(egnos_geo23.constellation.is_sbas()); // obviously
+assert_eq!(egnos_geo23.constellation, Constellation::EGNOS); // smart builder
+
+let launch_date = egnos_geo23.launch_date()
+    .unwrap(); // only for detailed SBAS
+
+assert_eq!(launch_date.year(), 2021);
+assert_eq!(launch_date.month_name(), MonthName::November);
 ```
 
 ## Other definitions and features
@@ -98,4 +110,4 @@ Amongst them, be sure to checkout:
 ## License
 
 This library is part of the [NAV-Solutions framework](https://github.com/nav-solutions) which
-is delivered under the [Mozilla V2 Public](https://www.mozilla.org/en-US/MPL/2.0) license.
+is licensed under [Mozilla V2 Public](https://www.mozilla.org/en-US/MPL/2.0) license.
