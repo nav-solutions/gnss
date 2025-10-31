@@ -1,5 +1,5 @@
 //! Space vehicle definition
-use hifitime::{Epoch, TimeScale};
+use hifitime::{Duration, Epoch, TimeScale};
 use thiserror::Error;
 
 #[cfg(feature = "serde")]
@@ -15,15 +15,14 @@ use std::str::FromStr;
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SV {
-    /// PRN identification # for this vehicle
+    /// PRN identification number for this vehicle
     pub prn: u8,
-    /// `GNSS` Constellation to which this vehicle belongs to
+
+    /// [Constellation] to which this satellite belongs to
     pub constellation: Constellation,
 }
 
-/*
- * Database, built by build.rs, for detailed SBAS vehicle identification
- */
+// Includes the SBAS definition database
 include!(concat!(env!("OUT_DIR"), "/sbas.rs"));
 
 /// ̀[SV] parsing related issues.
@@ -52,7 +51,7 @@ impl SV {
     ///
     /// assert_eq!(sv.constellation, Constellation::GPS);
     /// assert_eq!(sv.prn, 1);
-    /// assert_eq!(sv.launch_date(), None); // only for SBAS vehicles
+    /// assert_eq!(sv.launch_datetime(), None); // only for SBAS vehicles
     /// ```
     pub const fn new(constellation: Constellation, prn: u8) -> Self {
         Self { prn, constellation }
@@ -79,7 +78,7 @@ impl SV {
     /// assert!(egnos_geo23.constellation.is_sbas()); // obviously
     /// assert_eq!(egnos_geo23.constellation, Constellation::EGNOS); // smart builder
     ///
-    /// let launch_date = egnos_geo23.launch_date()
+    /// let launch_date = egnos_geo23.launch_datetime()
     ///     .unwrap(); // only for detailed SBAS
     ///
     /// assert_eq!(launch_date.year(), 2021);
@@ -113,7 +112,7 @@ impl SV {
 
     /// Explores SBAS detail database and tries to provide more detail from unique
     /// PRN number (+100).
-    pub(crate) fn sbas_definitions(prn: u8) -> Option<&'static SBASHelper<'static>> {
+    fn sbas_definitions(prn: u8) -> Option<&'static SBASHelper<'static>> {
         let to_find = (prn as u16) + 100;
         SBAS_VEHICLES
             .iter()
@@ -122,15 +121,25 @@ impl SV {
     }
 
     /// Returns launch date and time expressed as UTC [Epoch].  
-    /// This API is limited to [Constellation::SBAS] vehicles for which we store more details.
-    pub fn launch_date(&self) -> Option<Epoch> {
+    /// This API is limited to [Constellation::SBAS] vehicles for which we have a builtin database.
+    pub fn launch_datetime(&self) -> Option<Epoch> {
         let definition = SV::sbas_definitions(self.prn)?;
 
-        Some(Epoch::from_gregorian_utc_at_midnight(
-            definition.launch_year,
-            definition.launch_month,
-            definition.launch_day,
-        ))
+        if let Ok(epoch) = Epoch::from_str(definition.launch) {
+            // failures will not happen here,
+            // all entires are tested in CI/CD
+            Some(epoch)
+        } else {
+            None
+        }
+    }
+
+    /// Returns the space flight [Duration] at this particular point in time
+    /// expressed as [Epoch], for this [SV]. This is limited to [Constellation::SBAS]
+    /// vehicles for which we have a builtin database.
+    pub fn duration_since_launch(&self, now: Epoch) -> Option<Duration> {
+        let datetime = self.launch_datetime()?;
+        Some(now - datetime)
     }
 
     /// Returns True if [Self] is a [Constellation::BeiDou] geostationnary vehicle
@@ -169,7 +178,7 @@ impl std::fmt::UpperHex for SV {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         if self.constellation.is_sbas() {
             if let Some(sbas) = SV::sbas_definitions(self.prn) {
-                write!(f, "{}", sbas.id)
+                write!(f, "{}", sbas.name)
             } else {
                 write!(f, "{:x}", self)
             }
@@ -256,27 +265,20 @@ mod test {
         }
     }
     #[test]
-    fn sbas_db_sanity() {
+    fn builtin_database() {
         for sbas in SBAS_VEHICLES.iter() {
-            /* verify PRN */
-            assert!(sbas.prn > 100);
+            assert!(sbas.prn > 100, "SBAS PRN should be >100");
 
-            /* verify constellation */
-            let constellation = Constellation::from_str(sbas.constellation);
             assert!(
-                constellation.is_ok(),
-                "sbas database should only contain valid constellations: \"{}\"",
+                Constellation::from_str(sbas.constellation).is_ok(),
+                "corrupt database content: \"{}\"",
                 sbas.constellation,
             );
 
-            let constellation = constellation.unwrap();
-            assert_eq!(constellation.timescale(), Some(TimeScale::GPST));
-
-            /* verify launch date */
-            let _ = Epoch::from_gregorian_utc_at_midnight(
-                sbas.launch_year,
-                sbas.launch_month,
-                sbas.launch_day,
+            assert!(
+                Epoch::from_str(sbas.launch).is_ok(),
+                "corrupt launch datetime: \"{}\"",
+                sbas.launch
             );
         }
     }

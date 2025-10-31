@@ -93,7 +93,7 @@ impl std::fmt::Display for Constellation {
         match self {
             Self::GPS => write!(f, "GPS (US)"),
             Self::Glonass => write!(f, "Glonass (RU)"),
-            Self::BeiDou => write!(f, "BDS (CH)"),
+            Self::BeiDou => write!(f, "BeiDou (CH)"),
             Self::QZSS => write!(f, "QZSS (JP)"),
             Self::Galileo => write!(f, "Galileo (EU)"),
             Self::IRNSS => write!(f, "IRNSS (IN)"),
@@ -215,6 +215,7 @@ impl Constellation {
                 | Self::ASAL
                 | Self::AusNZ
                 | Self::SBAS
+                | Self::GBAS
         )
     }
 
@@ -335,6 +336,7 @@ impl Constellation {
 
     /// Returns the [TimeScale] this [Constellation] represents.
     /// Returns [None] when this operation does not apply to given [Constellation].
+    /// [Constellation::SBAS] are said to be refered to [TimeScale::GPST]
     pub fn timescale(&self) -> Option<TimeScale> {
         match self {
             Self::GPS => Some(TimeScale::GPST),
@@ -438,18 +440,18 @@ mod tests {
         ] {
             assert_eq!(constellation.to_string(), displayed);
             assert_eq!(format!("{:E}", constellation), upper_exp);
-            assert_eq!(format!("{:X}", constellation), upper_hex);
+            assert_eq!(format!("{:x}", constellation), upper_hex);
 
             // reciprocal
             assert_eq!(
                 Constellation::from_str(displayed),
-                constellation,
+                Ok(constellation),
                 "reciprocal failed for {}",
                 displayed
             );
             assert_eq!(
                 Constellation::from_str(upper_exp),
-                constellation,
+                Ok(constellation),
                 "reciprocal failed for {}",
                 upper_exp
             );
@@ -490,12 +492,12 @@ mod tests {
             ("BeiDou", Some(TimeScale::BDT)),
             ("BDS", Some(TimeScale::BDT)),
             ("QZSS", Some(TimeScale::QZSST)),
-            ("WAAS", None),
-            ("EGNOS", None),
-            ("KASS", None),
-            ("ASBAS", None),
-            ("GBAS", None),
-            ("GAGAN", None),
+            ("WAAS", Some(TimeScale::GPST)),
+            ("EGNOS", Some(TimeScale::GPST)),
+            ("KASS", Some(TimeScale::GPST)),
+            ("ASBAS", Some(TimeScale::GPST)),
+            ("GBAS", Some(TimeScale::GPST)),
+            ("GAGAN", Some(TimeScale::GPST)),
         ] {
             let constellation = Constellation::from_str(constellation_str).unwrap();
 

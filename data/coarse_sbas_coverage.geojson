@@ -1,0 +1,425 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "EGNOS (Europe)",
+        "source_note": "EGNOS visibility map / EDAS. Source: EGNOS user support.",
+        "approximation": "coarse bounding box, not suitable for certified navigation"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -25,
+              30
+            ],
+            [
+              40,
+              30
+            ],
+            [
+              40,
+              72
+            ],
+            [
+              -25,
+              72
+            ],
+            [
+              -25,
+              30
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "WAAS (USA / North America)",
+        "source_note": "FAA / WAAS coverage pages and NSTB data.",
+        "approximation": "coarse bounding box, not suitable for certified navigation"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -170,
+              5
+            ],
+            [
+              -50,
+              5
+            ],
+            [
+              -50,
+              75
+            ],
+            [
+              -170,
+              75
+            ],
+            [
+              -170,
+              5
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "GAGAN (India)",
+        "source_note": "ISRO / GAGAN coverage and descriptions.",
+        "approximation": "coarse bounding box, not suitable for certified navigation"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              40,
+              -10
+            ],
+            [
+              110,
+              -10
+            ],
+            [
+              110,
+              40
+            ],
+            [
+              40,
+              40
+            ],
+            [
+              40,
+              -10
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "KASS (Korea)",
+        "source_note": "KARI / KASS project pages.",
+        "approximation": "coarse bounding box, not suitable for certified navigation"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              124,
+              33
+            ],
+            [
+              132,
+              33
+            ],
+            [
+              132,
+              43
+            ],
+            [
+              124,
+              43
+            ],
+            [
+              124,
+              33
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "MSAS (Japan)",
+        "source_note": "MSAS / Navipedia descriptions.",
+        "approximation": "coarse bounding box, not suitable for certified navigation"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              120,
+              15
+            ],
+            [
+              150,
+              15
+            ],
+            [
+              150,
+              55
+            ],
+            [
+              120,
+              55
+            ],
+            [
+              120,
+              15
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "BDSBAS (China)",
+        "source_note": "BDSBAS / SNAS documentation (China).",
+        "approximation": "coarse bounding box, not suitable for certified navigation"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              73,
+              18
+            ],
+            [
+              135,
+              18
+            ],
+            [
+              135,
+              54
+            ],
+            [
+              73,
+              54
+            ],
+            [
+              73,
+              18
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "SDCM (Russia)",
+        "source_note": "SDCM / Russian SBAS descriptions.",
+        "approximation": "coarse bounding box, not suitable for certified navigation"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              20,
+              40
+            ],
+            [
+              180,
+              40
+            ],
+            [
+              180,
+              82
+            ],
+            [
+              20,
+              82
+            ],
+            [
+              20,
+              40
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "ASBAS (South Africa)",
+        "source_note": "African SBAS initiatives / ASBAS info.",
+        "approximation": "coarse bounding box, not suitable for certified navigation"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              10,
+              -35
+            ],
+            [
+              40,
+              -35
+            ],
+            [
+              40,
+              5
+            ],
+            [
+              10,
+              5
+            ],
+            [
+              10,
+              -35
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "SouthPAN (Australia / New Zealand)",
+        "source_note": "SouthPAN / Geoscience Australia & LINZ.",
+        "approximation": "coarse bounding box, not suitable for certified navigation"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              110,
+              -60
+            ],
+            [
+              180,
+              -60
+            ],
+            [
+              180,
+              10
+            ],
+            [
+              110,
+              10
+            ],
+            [
+              110,
+              -60
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "GBAS (UK) - local airport GBAS",
+        "source_note": "GBAS is airport/local; this polygon is a small localised area (example: London area).",
+        "approximation": "coarse bounding box, not suitable for certified navigation"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -0.7,
+              51.3
+            ],
+            [
+              0.1,
+              51.3
+            ],
+            [
+              0.1,
+              51.7
+            ],
+            [
+              -0.7,
+              51.7
+            ],
+            [
+              -0.7,
+              51.3
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "NSAS (Nigeria)",
+        "source_note": "Nigerian Satellite Augmentation System (NIGCOMSAT/NSAS).",
+        "approximation": "coarse bounding box, not suitable for certified navigation"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2,
+              4
+            ],
+            [
+              15,
+              4
+            ],
+            [
+              15,
+              15
+            ],
+            [
+              2,
+              15
+            ],
+            [
+              2,
+              4
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "ASAL (Algeria) - AL-SBAS",
+        "source_note": "Algeria AL-SBAS (Alcomsat-1 coverage).",
+        "approximation": "coarse bounding box, not suitable for certified navigation"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -8,
+              19
+            ],
+            [
+              12,
+              19
+            ],
+            [
+              12,
+              38
+            ],
+            [
+              -8,
+              38
+            ],
+            [
+              -8,
+              19
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 [package]
 name = "gnss-rs"
-version = "2.5.0"
+version = "2.6.0"
 license = "MPL-2.0"
 authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
 description = "GNSS constellations"
@@ -12,7 +12,6 @@ edition = "2021"
 readme = "README.md"
 
 [features]
-# no features enabled by default
 default = []
 
 # Enable COSPAR (launch #ID) definition
@@ -24,13 +23,11 @@ domes = []
 # This feature enables the "sbas_selector" function,
 # to select the locally available SBAS service, from ground coordinates.
 # This is not the SBAS identification helper which is built in by default.
-sbas = ["geo", "wkt"]
-
-# Enable all features at once
-full = [
-    "cospar",
-    "domes",
-    "sbas",
+sbas = [
+    "dep:geo", 
+    "dep:geojson", 
+    "dep:bincode", 
+    "dep:once_cell", 
 ]
 
 [package.metadata.docs.rs]
@@ -38,13 +35,17 @@ all-features = true
 rustdoc-args = ["--cfg", "docrs", "--generate-link-to-definition"]
 
 [build-dependencies]
-serde_json = { version = "1", features = ["preserve_order"] }
+hifitime = "4.1"
+geojson = { version = "0.24", optional = true }
 serde = { version = "1", default-features = false, features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+bincode = { version = "2", optional = true }
 
 [dependencies]
 thiserror = "2"
 hifitime = "4.1"
 lazy_static = "1"
 geo = { version = "0.31", optional = true }
-wkt = { version = "0.14", default-features = false, optional = true }
+bincode = { version = "2", optional = true }
+once_cell = { version = "1", optional = true }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }

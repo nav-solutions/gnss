@@ -32,7 +32,6 @@ extern crate gnss_rs as gnss;
 A small library to define and handle satellite vehicles and constellation.  
 
 ```rust
-use gnss_rs::sv;
 use gnss_rs::prelude::*;
 
 use std::str::FromStr;
@@ -43,7 +42,7 @@ let sv = SV::new(Constellation::GPS, 1);
 
 assert_eq!(sv.constellation, Constellation::GPS);
 assert_eq!(sv.prn, 1);
-assert_eq!(sv.launch_date(), None); // only for SBAS vehicles
+assert_eq!(sv.launch_datetime(), None); // only for SBAS vehicles
 ```
 
 ## SBAS (Geostationary) vehicles
@@ -69,7 +68,7 @@ assert_eq!(egnos_geo23.prn, 23);
 assert!(egnos_geo23.constellation.is_sbas()); // obviously
 assert_eq!(egnos_geo23.constellation, Constellation::EGNOS); // smart builder
 
-let launch_date = egnos_geo23.launch_date()
+let launch_date = egnos_geo23.launch_datetime()
     .unwrap(); // only for detailed SBAS
 
 assert_eq!(launch_date.year(), 2021);

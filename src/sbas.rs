@@ -1,76 +1,58 @@
 //! SBAS (geo service) selector helper.
+use bincode::{config, Decode};
+
 use crate::prelude::Constellation;
+use once_cell::sync::Lazy;
+use std::str::FromStr;
 
 use geo::{Contains, LineString, Point, Polygon};
-use wkt::{Geometry, Wkt, WktFloat};
 
-use std::{iter::FromIterator, str::FromStr};
-
-fn wkt_line_string_to_geo<T>(line_string: &wkt::types::LineString<T>) -> LineString<T>
-where
-    T: WktFloat + Default + FromStr,
-{
-    LineString::from_iter(line_string.0.iter().map(|coord| (coord.x, coord.y)))
+#[derive(Decode)]
+struct SbasPolygon {
+    name: String,
+    coordinates: Vec<(f64, f64)>,
 }
 
-fn line_string<T>(name: &str) -> LineString<T>
-where
-    T: WktFloat + Default + FromStr,
-{
-    let mut res = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    res.push("data");
-    res.push(name);
-    let content = std::fs::read_to_string(res).unwrap();
-    let wkt = Wkt::from_str(&content).unwrap();
-    match wkt.item {
-        Geometry::LineString(line) => wkt_line_string_to_geo(&line),
-        _ => unreachable!(),
-    }
+#[derive(Default, Decode)]
+struct SbasMap {
+    polygons: Vec<SbasPolygon>,
 }
 
-fn load_database() -> Vec<(Constellation, geo::Polygon)> {
-    let mut db: Vec<(Constellation, geo::Polygon)> = Vec::new();
-    let db_path = env!("CARGO_MANIFEST_DIR").to_owned() + "/data/";
-    let db_path = std::path::PathBuf::from(db_path);
-    for entry in std::fs::read_dir(db_path).unwrap() {
-        let entry = entry.unwrap();
-        let path = entry.path();
-        let fullpath = &path.to_str().unwrap();
-        let extension = path.extension().unwrap().to_str().unwrap();
-        let name = path.file_stem().unwrap().to_str().unwrap();
-        if extension.eq("wkt") {
-            let poly = geo::Polygon::<f64>::new(
-                line_string(fullpath), // exterior boundaries
-                vec![],
-            ); // dont care about interior
-            if let Ok(sbas) = Constellation::from_str(&name.to_uppercase()) {
-                db.push((sbas, poly))
-            }
-        }
-    }
-    db
-}
+static SBAS_POLYGONS: Lazy<SbasMap> = Lazy::new(|| {
+    let config = config::standard();
+
+    let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/sbas_polygons.bin"));
+
+    bincode::decode_from_slice(bytes, config)
+        .unwrap_or_else(|e| {
+            panic!("corrupt SBAS polygons database: {}", e);
+        })
+        .0
+});
 
 /// Helps select a SBAS (geostationary augmentation service) from user coordinates.
 /// ```
+/// use geo::Point;
 /// use gnss_rs::{
 ///     prelude::*,
 ///     sbas_selector,
 /// };
 ///
-/// let paris = (48.808378, 2.382682); // lat, lon [ddeg]
-/// let sbas = sbas_selector(paris.0, paris.1);
-/// assert_eq!(sbas, Some(Constellation::EGNOS));
+/// let paris = Point::new(48.808378, 2.382682);
+/// assert_eq!(sbas_selector(paris), Some(Constellation::EGNOS));
 ///
-/// let antartica = (-77.490631,  91.435181); // lat, lon [ddeg]
-/// let sbas = sbas_selector(antartica.0, antartica.1);
-/// assert_eq!(sbas.is_none(), true);
+/// let antarctica = Point::new(-77.490631,  91.435181);
+/// assert_eq!(sbas_selector(antarctica), None);
 ///```
 pub fn sbas_selector(point: Point) -> Option<Constellation> {
-    let db = load_database();
-    for (sbas, area) in db {
-        if area.contains(&point) {
-            return Some(sbas.clone());
+    for entry in SBAS_POLYGONS.polygons.iter() {
+        let polygon = Polygon::new(LineString::from(entry.coordinates.clone()), vec![]);
+        if polygon.contains(&point) {
+            if let Ok(constellation) = Constellation::from_str(&entry.name) {
+                // errors will not happen here,
+                // because every single entrie is validated in CI
+                return Some(constellation);
+            }
         }
     }
     None
@@ -82,7 +64,7 @@ mod test {
     use geo::Point;
 
     #[test]
-    fn test_sbas_helper() {
+    fn test_sbas_selector() {
         for (lat_ddeg, long_ddeg, expected) in [
             (48.808378, 2.38268, Some(Constellation::EGNOS)),
             (33.981431, -118.193601, Some(Constellation::WAAS)),
