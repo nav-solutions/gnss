@@ -44,7 +44,7 @@ pub struct DOMES {
     pub sequential: u16,
 }
 
-impl std::str::FromStr for DOMES {
+impl core::str::FromStr for DOMES {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() == 9 {
@@ -70,8 +70,8 @@ impl std::str::FromStr for DOMES {
     }
 }
 
-impl std::fmt::Display for DOMES {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl core::fmt::Display for DOMES {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         let point = match self.point {
             TrackingPoint::Monument => 'M',
             TrackingPoint::Instrument => 'S',

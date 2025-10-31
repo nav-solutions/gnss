@@ -22,6 +22,7 @@ struct SBASDBEntry<'a> {
     pub launch: &'a str,
 }
 
+#[cfg(feature = "std")]
 fn build_sbas_helper() {
     let outdir = env::var("OUT_DIR").unwrap();
     let path = Path::new(&outdir).join("sbas.rs");
@@ -77,12 +78,14 @@ use geojson::{Feature, GeoJson, Value};
 #[cfg(feature = "sbas")]
 use bincode::{config, Encode};
 
+#[cfg(feature = "sbas")]
 #[derive(Encode)]
 struct SbasPolygon {
     name: String,
     coordinates: Vec<(f64, f64)>,
 }
 
+#[cfg(feature = "sbas")]
 impl SbasPolygon {
     pub fn from_feature(feature: &Feature) -> Self {
         Self {
@@ -125,11 +128,13 @@ impl SbasPolygon {
     }
 }
 
+#[cfg(feature = "sbas")]
 #[derive(Default, Encode)]
 struct SbasMap {
     polygons: Vec<SbasPolygon>,
 }
 
+#[cfg(feature = "sbas")]
 impl SbasMap {
     fn from_geojson(geo: &GeoJson) -> Self {
         match geo {
@@ -150,7 +155,7 @@ impl SbasMap {
 
 /// Retrieves the SBAS geoservices maps (.geojson)
 /// and stores them as a small static array of geo::Polygons
-#[cfg(feature = "sbas")]
+#[cfg(all(feature = "sbas", feature = "std"))]
 fn build_sbas_service_polygons() {
     let encoding_config = config::standard();
 
@@ -183,13 +188,15 @@ fn build_sbas_service_polygons() {
 }
 
 fn main() {
+    #[cfg(feature = "std")]
     build_sbas_helper();
 
-    #[cfg(feature = "sbas")]
+    #[cfg(all(feature = "sbas", feature = "std"))]
     build_sbas_service_polygons();
 
-    #[cfg(feature = "sbas")]
+    #[cfg(all(feature = "sbas", feature = "std"))]
     println!("cargo:rerun-if-changed=data/coarse_sbas_coverage.geojson");
 
+    #[cfg(feature = "std")]
     println!("cargo:rerun-if-changed=data/sbas.geojson");
 }

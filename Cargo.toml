@@ -6,7 +6,7 @@ authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
 description = "GNSS constellations"
 homepage = "https://github.com/nav-solutions"
 repository = "https://github.com/nav-solutions/gnss"
-keywords = ["gnss", "gps", "glonass", "galileo"]
+keywords = ["gnss", "science", "no-std", "gps"]
 categories = ["science", "science::geo"]
 edition = "2021"
 readme = "README.md"
@@ -14,7 +14,13 @@ readme = "README.md"
 [features]
 default = []
 
+# no-std by default
+std = [
+    "hifitime/std"
+]
+
 # Enable COSPAR (launch #ID) definition
+# Requires the std library.
 cospar = []
 
 # Enable DOMES (IGS station ID) number definition.
@@ -36,10 +42,10 @@ rustdoc-args = ["--cfg", "docrs", "--generate-link-to-definition"]
 
 [build-dependencies]
 hifitime = "4.1"
-geojson = { version = "0.24", optional = true }
+geojson = { version = "0.24" }
+bincode = { version = "2", optional = true }
 serde = { version = "1", default-features = false, features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
-bincode = { version = "2", optional = true }
 
 [dependencies]
 thiserror = "2"
@@ -48,4 +54,5 @@ lazy_static = "1"
 geo = { version = "0.31", optional = true }
 bincode = { version = "2", optional = true }
 once_cell = { version = "1", optional = true }
+geojson = { version = "0.24", optional = true }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }

@@ -3,7 +3,7 @@ use bincode::{config, Decode};
 
 use crate::prelude::Constellation;
 use once_cell::sync::Lazy;
-use std::str::FromStr;
+use core::str::FromStr;
 
 use geo::{Contains, LineString, Point, Polygon};
 

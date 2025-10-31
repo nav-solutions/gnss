@@ -82,14 +82,14 @@ pub enum Constellation {
     Mixed,
 }
 
-impl std::fmt::Display for Constellation {
+impl core::fmt::Display for Constellation {
     /// Formats the the constellation full name along its country code.
     /// Any output here is compatible with [Constellation::from_str] reciprocal parsing.
     ///
     /// For example:
     /// - "GPS (US)" for american constellation
     /// - "Glonass (RU)" for russian constellation
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         match self {
             Self::GPS => write!(f, "GPS (US)"),
             Self::Glonass => write!(f, "Glonass (RU)"),
@@ -116,7 +116,7 @@ impl std::fmt::Display for Constellation {
     }
 }
 
-impl std::fmt::UpperExp for Constellation {
+impl core::fmt::UpperExp for Constellation {
     /// Format the [Constellation] accronym, without the country code.
     /// Any output here is compatible with [Constellation::from_str] reciprocal parsing.
     ///
@@ -135,7 +135,7 @@ impl std::fmt::UpperExp for Constellation {
     /// - "AUS/NZ" for australian and NZ geoscience service
     /// - "GBAS" for UK geo service
     /// - "MIX" for [Constellation::MIXED] setup
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         match self {
             Self::GPS => write!(f, "GPS"),
             Self::Glonass => write!(f, "GLO"),
@@ -162,7 +162,7 @@ impl std::fmt::UpperExp for Constellation {
     }
 }
 
-impl std::fmt::LowerHex for Constellation {
+impl core::fmt::LowerHex for Constellation {
     /// Formats this [Constellation] using a single letter,
     /// as per the standard RINEX file naming convention.
     /// This will generate 'S' for any geo service.
@@ -176,7 +176,7 @@ impl std::fmt::LowerHex for Constellation {
     /// - 'I' for [Constellation::IRNSS]
     /// - 'S' for any [Constellation::SBAS]
     /// - 'M' for any [Constellation::MIXED]
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         match self {
             Self::GPS => write!(f, "G"),
             Self::Glonass => write!(f, "R"),
@@ -225,6 +225,8 @@ impl Constellation {
     /// - "US" for [Constellation::GPS]
     /// - "EU" for [Constellation::Galileo]
     /// - None for [Constellation::SBAS]
+    #[cfg(feature = "std")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
     pub fn country_code(&self) -> Option<String> {
         let code = match self {
             Self::GPS | Self::WAAS => Some("US"),
@@ -355,7 +357,7 @@ impl Constellation {
     }
 }
 
-impl std::str::FromStr for Constellation {
+impl core::str::FromStr for Constellation {
     type Err = ParsingError;
     fn from_str(string: &str) -> Result<Self, Self::Err> {
         let s = string.trim().to_lowercase();

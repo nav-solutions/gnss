@@ -3,6 +3,7 @@
 )]
 #![doc = include_str!("../README.md")]
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 #[macro_use]
 mod macros;
@@ -12,10 +13,12 @@ pub mod constellation;
 pub mod sv;
 
 // private modules
+#[cfg(all(feature = "sbas", feature = "std"))]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "sbas", feature = "std"))))]
 mod sbas;
 
-#[cfg(feature = "cospar")]
-#[cfg_attr(docsrs, doc(cfg(feature = "cospar")))]
+#[cfg(all(feature = "cospar", feature = "std"))]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "cospar", feature = "std"))))]
 pub mod cospar;
 
 #[cfg(feature = "domes")]
@@ -33,7 +36,7 @@ pub use geo::geometry::Point;
 pub mod prelude {
     pub use crate::{constellation::Constellation, sv::SV};
 
-    #[cfg(feature = "cospar")]
+    #[cfg(all(feature = "cospar", feature = "std"))]
     pub use crate::cospar::COSPAR;
 
     #[cfg(feature = "domes")]

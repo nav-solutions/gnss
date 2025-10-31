@@ -21,6 +21,16 @@ Add "gnss" to your Cargo.toml
 gnss-rs = "2"
 ```
 
+## no-std
+
+This library is no-std compatible by default. Which gives you a meaningful database and work base
+even for microcontrollers. But you are limited to:
+
+- `COSPAR` is currently not available without `std`
+- The detailed SBAS definition are not known: the SBAS database is not builtin.
+You will have to activate `std` to take advantage of the complete SBAS definitions
+- The `sbas_selector` helper currently requires `std` library as well
+
 ## Constellation database
 
 This library defines both constellation and satellites from these constellations, in a single enum.

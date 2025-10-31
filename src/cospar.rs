@@ -39,13 +39,13 @@ impl COSPAR {
     }
 }
 
-impl std::fmt::Display for COSPAR {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl core::fmt::Display for COSPAR {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         write!(f, "{:04}-{:03}{}", self.year, self.launch, self.code)
     }
 }
 
-impl std::str::FromStr for COSPAR {
+impl core::str::FromStr for COSPAR {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() < 9 {
