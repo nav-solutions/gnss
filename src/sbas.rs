@@ -2,8 +2,8 @@
 use bincode::{config, Decode};
 
 use crate::prelude::Constellation;
-use once_cell::sync::Lazy;
 use core::str::FromStr;
+use once_cell::sync::Lazy;
 
 use geo::{Contains, LineString, Point, Polygon};
 

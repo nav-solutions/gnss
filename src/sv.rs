@@ -2,7 +2,7 @@
 use hifitime::{Duration, Epoch, TimeScale};
 use thiserror::Error;
 
-use core::{str::FromStr};
+use core::str::FromStr;
 
 use crate::constellation::{Constellation, ParsingError as ConstellationParsingError};
 
@@ -32,7 +32,7 @@ include!(concat!(env!("OUT_DIR"), "/sbas.rs"));
 pub enum ParsingError {
     #[error("constellation parsing error: {0}")]
     ConstellationParsing(#[from] ConstellationParsingError),
-    
+
     #[error("failed to parse PRN numer")]
     PrnParsing,
 }
@@ -179,7 +179,7 @@ impl core::str::FromStr for SV {
     /// Parses [SV] from "CNN" standard 3 letter code, where
     /// - C is a 1 letter constellation identifier
     /// - NN is a 2 digit PRN number
-    /// 
+    ///
     /// When built with std library supported, the interpretation
     /// is more detailed for SBAS vehicles, because
     /// we have a database builtin. For example, S23 is EutelSAT 5WB.
@@ -202,14 +202,14 @@ impl core::str::FromStr for SV {
         }
     }
 }
-    
+
 #[cfg(not(feature = "std"))]
 impl core::str::FromStr for SV {
     type Err = ParsingError;
     /// Parses [SV] from "CNN" standard 3 letter code, where
     /// - C is a 1 letter constellation identifier
     /// - NN is a 2 digit PRN number
-    /// 
+    ///
     /// When built without std library supported, the interpretation
     /// is limited to basic vehicles. For example "G01" is GPS 01,
     /// and S23 can only be interpreted as SBAS-23, because the SBAS
@@ -297,23 +297,23 @@ mod test {
 
     #[test]
     fn sbas_from_str() {
-        for (desc, parsed, lowerhex, upperhex) in vec![
+        for (desc, parsed, displayed, lowerhex) in vec![
             ("S 3", SV::new(Constellation::SBAS, 3), "S03", "S03"),
             (
                 "S22",
                 SV::new(Constellation::AusNZ, 22),
-                "S22",
                 "INMARSAT-4F1",
+                "S22",
             ),
-            ("S23", SV::new(Constellation::EGNOS, 23), "S23", "ASTRA-5B"),
-            ("S25", SV::new(Constellation::SDCM, 25), "S25", "Luch-5A"),
+            ("S23", SV::new(Constellation::EGNOS, 23), "ASTRA-5B", "S23"),
+            ("S25", SV::new(Constellation::SDCM, 25), "Luch-5A", "S25"),
             ("S 5", SV::new(Constellation::SBAS, 5), "S05", "S05"),
-            ("S48", SV::new(Constellation::ASAL, 48), "S48", "ALCOMSAT-1"),
+            ("S48", SV::new(Constellation::ASAL, 48), "ALCOMSAT-1", "S48"),
         ] {
             let sv = SV::from_str(desc).unwrap();
             assert_eq!(sv, parsed, "failed to parse correct sv from \"{}\"", desc);
+            assert_eq!(sv.to_string(), displayed);
             assert_eq!(format!("{:x}", sv), lowerhex);
-            assert_eq!(format!("{:X}", sv), upperhex);
             assert!(sv.constellation.is_sbas(), "should be sbas");
         }
     }
