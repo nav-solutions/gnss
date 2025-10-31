@@ -24,12 +24,16 @@ pub mod domes;
 #[cfg_attr(docsrs, doc(cfg(feature = "sbas")))]
 pub use sbas::sbas_selector;
 
+#[cfg(feature = "sbas")]
+pub use geo::geometry::Point;
+
 // prelude (pkg)
 pub mod prelude {
-    pub use crate::constellation::Constellation;
+    pub use crate::{constellation::Constellation, sv::SV};
+
     #[cfg(feature = "cospar")]
     pub use crate::cospar::COSPAR;
+
     #[cfg(feature = "domes")]
     pub use crate::domes::{TrackingPoint as DOMESTrackingPoint, DOMES};
-    pub use crate::sv::SV;
 }
