@@ -15,15 +15,15 @@ readme = "README.md"
 # no features enabled by default
 default = []
 
+# Enable COSPAR (launch #ID) definition
+cospar = []
+
 # Enable DOMES (IGS station ID) number definition.
 domes = []
 
-# Enable COSPAR (Vehicle Launch #ID) definition
-cospar = []
-
-# SBAS (GEO) vehicules definitions are built-in this library.
-# This feature unlocks the definition of a database  of projected areas covered 
-# by SBAS services, all around the globe, in the form of GEO/WKT frames.
+# This feature enables the "sbas_selector" function,
+# to select the locally available SBAS service, from ground coordinates.
+# This is not the SBAS identification helper which is built in by default.
 sbas = ["geo", "wkt"]
 
 # Enable all features at once
@@ -44,8 +44,7 @@ serde = { version = "1", default-features = false, features = ["derive"] }
 [dependencies]
 thiserror = "2"
 hifitime = "4.1"
-lazy_static = "1.5"
+lazy_static = "1"
+geo = { version = "0.31", optional = true }
+wkt = { version = "0.14", default-features = false, optional = true }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
-
-geo = { version = "0.29", optional = true }
-wkt = { version = "0.10", default-features = false, optional = true }

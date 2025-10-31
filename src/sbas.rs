@@ -1,20 +1,15 @@
-//! Geostationary augmentation systems
-#[cfg(feature = "sbas")]
+//! SBAS (geo service) selection helper.
+
 use crate::prelude::Constellation;
 
-//#[cfg(feature = "serde")]
-//use serde::{Deserialize, Serialize};
-
-#[cfg(feature = "sbas")]
 use geo::{point, Contains, LineString};
-#[cfg(feature = "sbas")]
-use std::iter::FromIterator;
-#[cfg(feature = "sbas")]
-use std::str::FromStr;
-#[cfg(feature = "sbas")]
 use wkt::{Geometry, Wkt, WktFloat};
 
-#[cfg(feature = "sbas")]
+use std::{
+    iter::FromIterator,
+    str::FromStr,
+};
+
 fn wkt_line_string_to_geo<T>(line_string: &wkt::types::LineString<T>) -> LineString<T>
 where
     T: WktFloat + Default + FromStr,
@@ -22,7 +17,6 @@ where
     LineString::from_iter(line_string.0.iter().map(|coord| (coord.x, coord.y)))
 }
 
-#[cfg(feature = "sbas")]
 fn line_string<T>(name: &str) -> LineString<T>
 where
     T: WktFloat + Default + FromStr,
@@ -38,7 +32,6 @@ where
     }
 }
 
-#[cfg(feature = "sbas")]
 fn load_database() -> Vec<(Constellation, geo::Polygon)> {
     let mut db: Vec<(Constellation, geo::Polygon)> = Vec::new();
     let db_path = env!("CARGO_MANIFEST_DIR").to_owned() + "/data/";
@@ -89,14 +82,12 @@ pub fn sbas_selection(lat: f64, lon: f64) -> Option<Constellation> {
     }
     None
 }
-
 #[cfg(feature = "sbas")]
 #[cfg(test)]
 mod test {
     use super::*;
     #[test]
-    #[cfg(feature = "sbas")]
-    fn sbas_helper() {
+    fn test_sbas_helper() {
         // PARIS --> EGNOS
         let sbas = sbas_selection(48.808378, 2.382682);
         assert_eq!(sbas.is_some(), true);

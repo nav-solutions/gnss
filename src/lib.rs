@@ -11,11 +11,18 @@ mod macros;
 pub mod constellation;
 pub mod sv;
 
+// private modules
+mod sbas;
+
 #[cfg(feature = "cospar")]
 pub mod cospar;
 
 #[cfg(feature = "domes")]
 pub mod domes;
+
+#[cfg(feature = "sbas")]
+#[cfg_attr(docsrs, doc(cfg(feature = "sbas")))]
+pub use sbas::sbas_selector;
 
 // prelude (pkg)
 pub mod prelude {
@@ -26,9 +33,3 @@ pub mod prelude {
     pub use crate::domes::{TrackingPoint as DOMESTrackingPoint, DOMES};
     pub use crate::sv::SV;
 }
-
-// private modules
-mod sbas;
-
-#[cfg(feature = "sbas")]
-pub use sbas::sbas_selection;
