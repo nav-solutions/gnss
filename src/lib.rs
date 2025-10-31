@@ -15,9 +15,11 @@ pub mod sv;
 mod sbas;
 
 #[cfg(feature = "cospar")]
+#[cfg_attr(docsrs, doc(cfg(feature = "cospar")))]
 pub mod cospar;
 
 #[cfg(feature = "domes")]
+#[cfg_attr(docsrs, doc(cfg(feature = "domes")))]
 pub mod domes;
 
 #[cfg(feature = "sbas")]

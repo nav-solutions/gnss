@@ -2,14 +2,15 @@
 use hifitime::{Duration, Epoch, TimeScale};
 use thiserror::Error;
 
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use std::{num::ParseIntError, str::FromStr};
 
 use crate::constellation::{Constellation, ParsingError as ConstellationParsingError};
 
-use std::num::ParseIntError;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
-use std::str::FromStr;
+#[cfg(feature = "cospar")]
+use crate::prelude::COSPAR;
 
 /// ̀SV describes a Satellite Vehicle
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -134,6 +135,21 @@ impl SV {
         }
     }
 
+    // /// Returns the [COSPAR] number (unique launch identification code)
+    // /// for this satellite, if known. This API is limited to [Constellation::SBAS] vehicles
+    // /// for which we have a builtin database.
+    // #[cfg(feature = "cospar")]
+    // #[cfg_attr(docsrs, doc(cfg(feature = "cospar")))]
+    // pub fn cospar_number(&self) -> Option<COSPAR> {
+    //     let definitions = SV::sbas_definitions(self.prn)?;
+    //     let launch_datetime = self.launch_datetime()?;
+    //     Some(COSPAR::new(
+    //         launch_datetime.year(),
+    //         definitions.cospar_number,
+    //         definitions.cospar_code,
+    //     ))
+    // }
+
     /// Returns the space flight [Duration] at this particular point in time
     /// expressed as [Epoch], for this [SV]. This is limited to [Constellation::SBAS]
     /// vehicles for which we have a builtin database.
@@ -172,9 +188,7 @@ impl std::str::FromStr for SV {
 }
 
 impl std::fmt::UpperHex for SV {
-    /*
-     * Possibly detailed identity for SBAS vehicles
-     */
+    /// Formats this [SV] with possible details (if known in our database).
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         if self.constellation.is_sbas() {
             if let Some(sbas) = SV::sbas_definitions(self.prn) {
@@ -189,18 +203,18 @@ impl std::fmt::UpperHex for SV {
 }
 
 impl std::fmt::LowerHex for SV {
-    /*
-     * Prints self as XYY standard format
-     */
+    /// Formats this [SV] in CNN format, where:
+    /// - C is a single letter [Constellation] identifier
+    /// - NN is a two-digit PRN number
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{:x}{:02}", self.constellation, self.prn)
     }
 }
 
 impl std::fmt::Display for SV {
-    /*
-     * Prints self as XYY standard format
-     */
+    /// Formats this [SV] in CNN format, where:
+    /// - C is a single letter [Constellation] identifier
+    /// - NN is a two-digit PRN number
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{:x}{:02}", self.constellation, self.prn)
     }
@@ -210,6 +224,7 @@ impl std::fmt::Display for SV {
 mod test {
     use super::*;
     use std::str::FromStr;
+
     #[test]
     fn from_str() {
         for (descriptor, expected) in vec![
@@ -242,6 +257,7 @@ mod test {
             );
         }
     }
+
     #[test]
     fn sbas_from_str() {
         for (desc, parsed, lowerhex, upperhex) in vec![
@@ -264,8 +280,9 @@ mod test {
             assert!(sv.constellation.is_sbas(), "should be sbas");
         }
     }
+
     #[test]
-    fn builtin_database() {
+    fn test_database() {
         for sbas in SBAS_VEHICLES.iter() {
             assert!(sbas.prn > 100, "SBAS PRN should be >100");
 

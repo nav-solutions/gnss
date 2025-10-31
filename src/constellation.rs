@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 /// Constellation parsing & identification related errors
 #[derive(Error, Clone, Debug, PartialEq)]
 pub enum ParsingError {
-    #[error("unknown constellation \"{0}\"")]
-    Unknown(String),
+    #[error("Unknown constellation")]
+    Unknown,
 }
 
 /// Describes all known `GNSS` constellations
@@ -59,7 +59,7 @@ pub enum Constellation {
     /// South African Geostationary service
     ASBAS,
 
-    /// Autralia and New-Zealand Geostationary service
+    /// South-PAN Autralia and New-Zealand Geostationary service
     SPAN,
 
     /// Undetermined or generic Geostationary service.
@@ -107,7 +107,7 @@ impl std::fmt::Display for Constellation {
             Self::ASBAS => write!(f, "ASBAS (SA)"),
             Self::SPAN => write!(f, "SPAN (AUS)"),
             Self::SBAS => write!(f, "SBAS"),
-            Self::AusNZ => write!(f, "AusNZ (AUS)"),
+            Self::AusNZ => write!(f, "AUS/NZ (AUS)"),
             Self::GBAS => write!(f, "GBAS (UK)"),
             Self::NSAS => write!(f, "NSAS (NI)"),
             Self::ASAL => write!(f, "ASAL (AL)"),
@@ -319,7 +319,7 @@ impl Constellation {
             Some(Self::KASS)
         } else if lower.starts_with("kor") {
             Some(Self::KASS)
-        } else if lower.starts_with("aus") {
+        } else if lower.starts_with("australia") {
             Some(Self::SPAN)
         } else if lower.starts_with("new-zea") {
             Some(Self::SPAN)
@@ -359,37 +359,85 @@ impl std::str::FromStr for Constellation {
     type Err = ParsingError;
     fn from_str(string: &str) -> Result<Self, Self::Err> {
         let s = string.trim().to_lowercase();
+
+        // single letter reciprocal
         match s.as_str() {
-            "g" | "gps" => Ok(Self::GPS),
-            "c" | "bds" => Ok(Self::BeiDou),
-            "e" | "gal" => Ok(Self::Galileo),
-            "r" | "glo" => Ok(Self::Glonass),
-            "j" | "qzss" => Ok(Self::QZSS),
-            "i" | "irnss" => Ok(Self::IRNSS),
-            "s" | "sbas" => Ok(Self::SBAS),
-            "m" | "mixed" => Ok(Self::Mixed),
-            "ausnz" => Ok(Self::AusNZ),
-            "egnos" => Ok(Self::EGNOS),
-            "waas" => Ok(Self::WAAS),
-            "kass" => Ok(Self::KASS),
-            "gagan" => Ok(Self::GAGAN),
-            "asbas" => Ok(Self::ASBAS),
-            "nsas" => Ok(Self::NSAS),
-            "asal" => Ok(Self::ASAL),
-            "msas" => Ok(Self::MSAS),
-            "span" => Ok(Self::SPAN),
-            "gbas" => Ok(Self::GBAS),
-            "sdcm" => Ok(Self::SDCM),
-            "bdsbas" => Ok(Self::BDSBAS),
-            _ if s.contains("gps") => Ok(Self::GPS),
-            _ if s.contains("glonass") => Ok(Self::Glonass),
-            _ if s.contains("beidou") => Ok(Self::BeiDou),
-            _ if s.contains("galileo") => Ok(Self::Galileo),
-            _ if s.contains("qzss") => Ok(Self::QZSS),
-            _ if s.contains("sbas") | s.contains("geo") => Ok(Self::SBAS),
-            _ if s.contains("irnss") | s.contains("navic") => Ok(Self::IRNSS),
-            _ if s.contains("mix") => Ok(Self::Mixed),
-            _ => Err(ParsingError::Unknown(string.to_string())),
+            "g" => return Ok(Self::GPS),
+            "c" => return Ok(Self::BeiDou),
+            "e" => return Ok(Self::Galileo),
+            "r" => return Ok(Self::Glonass),
+            "j" => return Ok(Self::QZSS),
+            "i" => return Ok(Self::IRNSS),
+            "s" => return Ok(Self::SBAS),
+            "m" => return Ok(Self::Mixed),
+            _ => {},
+        }
+
+        // smart guess
+        if s.contains("gps") {
+            Ok(Self::GPS)
+        } else if s.contains("glo") {
+            Ok(Self::Glonass)
+        } else if s.contains("glonass") {
+            Ok(Self::Glonass)
+        } else if s.contains("beidou") {
+            Ok(Self::BeiDou)
+        } else if s.contains("bdsbas") {
+            Ok(Self::BDSBAS)
+        } else if s.contains("bds") {
+            Ok(Self::BeiDou)
+        } else if s.contains("galileo") {
+            Ok(Self::Galileo)
+        } else if s.contains("qzss") {
+            Ok(Self::QZSS)
+        } else if s.contains("irnss") {
+            Ok(Self::IRNSS)
+        } else if s.contains("nav/ic") {
+            Ok(Self::IRNSS)
+        } else if s.contains("span") {
+            Ok(Self::SPAN)
+        } else if s.contains("south-pan") {
+            Ok(Self::SPAN)
+        } else if s.contains("south pan") {
+            Ok(Self::SPAN)
+        } else if s.contains("aus/nz") {
+            Ok(Self::AusNZ)
+        } else if s.contains("australia") {
+            Ok(Self::SPAN)
+        } else if s.contains("new-zealand") {
+            Ok(Self::SPAN)
+        } else if s.contains("new zealand") {
+            Ok(Self::SPAN)
+        } else if s.contains("waas") {
+            Ok(Self::WAAS)
+        } else if s.contains("kass") {
+            Ok(Self::KASS)
+        } else if s.contains("egnos") {
+            Ok(Self::EGNOS)
+        } else if s.contains("gagan") {
+            Ok(Self::GAGAN)
+        } else if s.contains("gbas") {
+            Ok(Self::GBAS)
+        } else if s.contains("sdcm") {
+            Ok(Self::SDCM)
+        } else if s.contains("msas") {
+            Ok(Self::MSAS)
+        } else if s.contains("nsas") {
+            Ok(Self::NSAS)
+        } else if s.contains("span") {
+            Ok(Self::SPAN)
+        } else if s.contains("asbas") {
+            Ok(Self::ASBAS)
+        } else if s.contains("asal") {
+            Ok(Self::ASAL)
+        } else if s.contains("gal") {
+            Ok(Self::Galileo)
+        } else if s.contains("mix") {
+            Ok(Self::Mixed)
+        } else if s.contains("sbas") {
+            Ok(Self::SBAS)
+        } else {
+            Err(ParsingError::Unknown)
         }
     }
 }
@@ -473,7 +521,12 @@ mod tests {
             ("BDS", false),
             ("QZSS", false),
         ] {
-            let constellation = Constellation::from_str(constellation_str).unwrap();
+            let constellation = Constellation::from_str(constellation_str).unwrap_or_else(|_| {
+                panic!(
+                    "failed to parse constellation from \"{}\"",
+                    constellation_str
+                );
+            });
 
             assert_eq!(
                 constellation.is_sbas(),

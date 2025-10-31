@@ -16,11 +16,27 @@ pub enum Error {
 pub struct COSPAR {
     /// Launch year
     year: u16,
+
     /// Launch number for that year, in chronological order.
     launch: u16,
+
     /// Up to three letter code representing the sequential
     /// identifier of a piece in a Launch.
     code: String,
+}
+
+impl COSPAR {
+    /// Define a new [COSPAR] number from
+    /// - year: satellite launch year
+    /// - number: the launch number for that year, in chronological order.
+    /// - code: a 3 letter code
+    pub fn new(year: u16, number: u16, code: &str) -> Self {
+        Self {
+            year,
+            launch: number,
+            code: code.to_string(),
+        }
+    }
 }
 
 impl std::fmt::Display for COSPAR {

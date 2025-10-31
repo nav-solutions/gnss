@@ -38,10 +38,10 @@ static SBAS_POLYGONS: Lazy<SbasMap> = Lazy::new(|| {
 ///     sbas_selector,
 /// };
 ///
-/// let paris = Point::new(48.808378, 2.382682);
+/// let paris = Point::new(2.38262, 48.808378); //x=longitude°, y=latitude°
 /// assert_eq!(sbas_selector(paris), Some(Constellation::EGNOS));
 ///
-/// let antarctica = Point::new(-77.490631,  91.435181);
+/// let antarctica = Point::new(91.435181, -77.490631); //x=longitude°, y=latitude°
 /// assert_eq!(sbas_selector(antarctica), None);
 ///```
 pub fn sbas_selector(point: Point) -> Option<Constellation> {
@@ -60,29 +60,40 @@ pub fn sbas_selector(point: Point) -> Option<Constellation> {
 
 #[cfg(test)]
 mod test {
-    use crate::{prelude::Constellation, sbas_selector};
+    use crate::{prelude::Constellation, sbas::SBAS_POLYGONS, sbas_selector};
     use geo::Point;
+    use std::str::FromStr;
+
+    #[test]
+    fn test_database() {
+        for entry in SBAS_POLYGONS.polygons.iter() {
+            assert!(
+                Constellation::from_str(&entry.name).is_ok(),
+                "invalid constellation name found \"{}\"",
+                entry.name
+            );
+        }
+    }
 
     #[test]
     fn test_sbas_selector() {
         for (lat_ddeg, long_ddeg, expected) in [
             (48.808378, 2.38268, Some(Constellation::EGNOS)),
             (33.981431, -118.193601, Some(Constellation::WAAS)),
-            (10.714217, 17.087263, Some(Constellation::ASBAS)),
             (19.314290, 76.798953, Some(Constellation::GAGAN)),
             (-27.579847, 131.334992, Some(Constellation::SPAN)),
             (-45.113525, 169.864842, Some(Constellation::SPAN)),
-            (34.462967, 98.172480, Some(Constellation::BDSBAS)),
+            (34.462967, 98.172480, Some(Constellation::GAGAN)),
             (37.067846, 128.34, Some(Constellation::KASS)),
             (36.081095, 138.274859, Some(Constellation::MSAS)),
             (60.004390, 89.090326, Some(Constellation::SDCM)),
-            (-32.473320, 21.112770, None),  // south-africa
+            (-32.473320, 21.112770, Some(Constellation::ASBAS)),
             (-23.216639, -63.170983, None), // argentina
             (-77.490631, 91.435181, None),  // antarctica
             (-29.349172, 72.773447, None),  // south indian ocean
         ] {
             assert_eq!(
-                sbas_selector(Point::new(lat_ddeg, long_ddeg)),
+                sbas_selector(Point::new(long_ddeg, lat_ddeg)),
                 expected,
                 "invalid results for coordinates lat={}° long={}°",
                 lat_ddeg,

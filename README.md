@@ -21,64 +21,93 @@ Add "gnss" to your Cargo.toml
 gnss-rs = "2"
 ```
 
-Import "gnss-rs": 
+## Constellation database
+
+This library defines both constellation and satellites from these constellations, in a single enum.
 
 ```rust
-extern crate gnss_rs as gnss;
-```
-
-## Space Vehicles
-
-A small library to define and handle satellite vehicles and constellation.  
-
-```rust
-use gnss_rs::prelude::*;
-
 use std::str::FromStr;
+use gnss_rs::prelude::*;
 use hifitime::{TimeScale, Epoch};
 
-// This method lets you construct satellites that may not exist
+// It is possible to define satellites that do not exist
 let sv = SV::new(Constellation::GPS, 1);
 
-assert_eq!(sv.constellation, Constellation::GPS);
 assert_eq!(sv.prn, 1);
-assert_eq!(sv.launch_datetime(), None); // only for SBAS vehicles
+assert_eq!(sv.constellation, Constellation::GPS);
+assert_eq!(sv.timescale(), Some(TimeScale::GPST)); // convenient method
+assert_eq!(sv.constellation.country_code(), Some("US".to_string())); // convenient method
+
+assert_eq!(Constellation::GPS.to_string(), "GPS (US)"); // readable format
+assert_eq!(format!("{:E}", Constellation::GPS), "GPS"); // standard accronym
+assert_eq!(format!("{:x}", Constellation::GPS), "G"); // RINEX like format
+
+assert_eq!(Constellation::from_str("G"), Ok(Constellation::GPS)); // reciprocal
+assert_eq!(Constellation::from_str("GPS (US)"), Ok(Constellation::GPS)); // reciprocal
+
+// this type of information is only defined
+// for SBAS vehicles
+assert_eq!(sv.launch_datetime(), None); 
+
 ```
 
-## SBAS (Geostationary) vehicles
+## SBAS (Geostationary services)
 
-The library integrates a smart SBAS constellation identifier. We use the RINEX
-convention (PRN ranging from 0..100), therefore the true satellite number
-of SBAS vehicles is the PRN we use +100.
+We offer convenient methods to handle SBAS (geostationary services).
+For example, we integrate a builtin database to define most known SBAS services.
     
 ```rust
-use gnss_rs::sv;
-use gnss_rs::prelude::*;
-
 use std::str::FromStr;
+use gnss_rs::prelude::*;
 use hifitime::{TimeScale, Epoch, MonthName};
 
-// This only works if satellite do exist in our database
-assert!(SV::new_sbas(1).is_none());
+let egnos = Constellation::EGNOS;
 
-let egnos_geo23 = SV::new_sbas(23)
-    .unwrap(); // GEO #123
+assert!(egnos.is_sbas(), "obvious");
+assert_eq!(egnos.timescale(), Some(TimeScale::GPST)); // we refer GEO services to GPST
 
-assert_eq!(egnos_geo23.prn, 23);
-assert!(egnos_geo23.constellation.is_sbas()); // obviously
-assert_eq!(egnos_geo23.constellation, Constellation::EGNOS); // smart builder
+// convenient builder for RINEX and other similar applications.
+// Must be known to our database for this to work.
+// The database is defined in data/sbas.json
+let geo23 = SV::new_sbas(23).unwrap();
+assert_eq!(geo23.constellation, Constellation::EGNOS);
 
-let launch_date = egnos_geo23.launch_datetime()
-    .unwrap(); // only for detailed SBAS
-
-assert_eq!(launch_date.year(), 2021);
-assert_eq!(launch_date.month_name(), MonthName::November);
+// convenient information using our builtin database
+assert_eq!(geo23.launch_datetime().and_then(|e| Some(e.to_string())), Some("2021-11-01T00:00:00 UTC".to_string()));
 ```
 
-## Other definitions and features
+All this information is provided by default. If you compiled the library with the "sbas" option,
+we provide a selection helper that helps select the GEO service, for given user coordinates.
 
-Other definitions and features exist. Use compilation options (crate features) to unlock them.
-The idea is to maintain a very minimal default library.
+```rust
+use geo::Point;
+
+use gnss_rs::{
+    sbas_selector, 
+    prelude::Constellation,
+};
+
+let paris = Point::new(2.38268, 48.808378); //x=longitude°, y=latitude°
+assert_eq!(sbas_selector(paris), Some(Constellation::EGNOS));
+```
+
+## COSPAR definition
+
+When compiled with the "COSPAR" option, the library defines the `COSPAR` 
+launch identifier (unique number).
+
+```rust
+use gnss_rs::prelude::COSPAR;
+use std::str::FromStr;
+
+assert!(COSPAR::from_str("2018-080A").is_ok());
+```
+
+## DOMES definition
+
+When compiled with the "DOMES" option, the library provides the definition
+of [DOMES (IGS) site identification number](https://itrf.ign.fr/en/network/domes/description).
+
 
 - The SERDE features unlocks serialization/deserialization of the main structures defined here.
 

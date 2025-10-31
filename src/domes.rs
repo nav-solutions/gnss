@@ -18,6 +18,7 @@ pub enum Error {
 pub enum TrackingPoint {
     /// Monument (pole, pillar, geodetic marker..)
     Monument,
+
     /// Instrument reference point.
     /// This is usually the antenna reference point, but it can be any
     /// location referred to an instrument, like a specific location
@@ -32,10 +33,13 @@ pub enum TrackingPoint {
 pub struct DOMES {
     /// Area / Country code (3 digits)
     pub area: u16,
+
     /// Area site number (2 digits)
     pub site: u8,
+
     /// Tracking point
     pub point: TrackingPoint,
+
     /// Sequential number (3 digits)
     pub sequential: u16,
 }

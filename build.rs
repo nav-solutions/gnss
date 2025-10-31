@@ -180,8 +180,6 @@ fn build_sbas_service_polygons() {
     std::fs::write(out_path, bytes).unwrap_or_else(|e| {
         panic!("failed to serialize polygon map: {}", e);
     });
-
-    println!("cargo:rerun-if-changed=data/coarse_sbas_coverage.geojson");
 }
 
 fn main() {
@@ -189,4 +187,9 @@ fn main() {
 
     #[cfg(feature = "sbas")]
     build_sbas_service_polygons();
+
+    #[cfg(feature = "sbas")]
+    println!("cargo:rerun-if-changed=data/coarse_sbas_coverage.geojson");
+
+    println!("cargo:rerun-if-changed=data/sbas.geojson");
 }
