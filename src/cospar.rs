@@ -16,20 +16,36 @@ pub enum Error {
 pub struct COSPAR {
     /// Launch year
     year: u16,
+
     /// Launch number for that year, in chronological order.
     launch: u16,
+
     /// Up to three letter code representing the sequential
     /// identifier of a piece in a Launch.
     code: String,
 }
 
-impl std::fmt::Display for COSPAR {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl COSPAR {
+    /// Define a new [COSPAR] number from
+    /// - year: satellite launch year
+    /// - number: the launch number for that year, in chronological order.
+    /// - code: a 3 letter code
+    pub fn new(year: u16, number: u16, code: &str) -> Self {
+        Self {
+            year,
+            launch: number,
+            code: code.to_string(),
+        }
+    }
+}
+
+impl core::fmt::Display for COSPAR {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         write!(f, "{:04}-{:03}{}", self.year, self.launch, self.code)
     }
 }
 
-impl std::str::FromStr for COSPAR {
+impl core::str::FromStr for COSPAR {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() < 9 {

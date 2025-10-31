@@ -3,6 +3,7 @@
 )]
 #![doc = include_str!("../README.md")]
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 #[macro_use]
 mod macros;
@@ -11,24 +12,33 @@ mod macros;
 pub mod constellation;
 pub mod sv;
 
-#[cfg(feature = "cospar")]
+// private modules
+#[cfg(all(feature = "sbas", feature = "std"))]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "sbas", feature = "std"))))]
+mod sbas;
+
+#[cfg(all(feature = "cospar", feature = "std"))]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "cospar", feature = "std"))))]
 pub mod cospar;
 
 #[cfg(feature = "domes")]
+#[cfg_attr(docsrs, doc(cfg(feature = "domes")))]
 pub mod domes;
+
+#[cfg(feature = "sbas")]
+#[cfg_attr(docsrs, doc(cfg(feature = "sbas")))]
+pub use sbas::sbas_selector;
+
+#[cfg(feature = "sbas")]
+pub use geo::geometry::Point;
 
 // prelude (pkg)
 pub mod prelude {
-    pub use crate::constellation::Constellation;
-    #[cfg(feature = "cospar")]
+    pub use crate::{constellation::Constellation, sv::SV};
+
+    #[cfg(all(feature = "cospar", feature = "std"))]
     pub use crate::cospar::COSPAR;
+
     #[cfg(feature = "domes")]
     pub use crate::domes::{TrackingPoint as DOMESTrackingPoint, DOMES};
-    pub use crate::sv::SV;
 }
-
-// private modules
-mod sbas;
-
-#[cfg(feature = "sbas")]
-pub use sbas::sbas_selection;

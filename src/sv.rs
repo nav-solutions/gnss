@@ -1,29 +1,30 @@
 //! Space vehicle definition
-use hifitime::{Epoch, TimeScale};
+use hifitime::{Duration, Epoch, TimeScale};
 use thiserror::Error;
+
+use core::str::FromStr;
+
+use crate::constellation::{Constellation, ParsingError as ConstellationParsingError};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::constellation::{Constellation, ParsingError as ConstellationParsingError};
-
-use std::num::ParseIntError;
-
-use std::str::FromStr;
+// #[cfg(feature = "cospar")]
+// use crate::prelude::COSPAR;
 
 /// ̀SV describes a Satellite Vehicle
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SV {
-    /// PRN identification # for this vehicle
+    /// PRN identification number for this vehicle
     pub prn: u8,
-    /// `GNSS` Constellation to which this vehicle belongs to
+
+    /// [Constellation] to which this satellite belongs to
     pub constellation: Constellation,
 }
 
-/*
- * Database, built by build.rs, for detailed SBAS vehicle identification
- */
+// Includes the SBAS definition database
+#[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/sbas.rs"));
 
 /// ̀[SV] parsing related issues.
@@ -32,8 +33,8 @@ pub enum ParsingError {
     #[error("constellation parsing error: {0}")]
     ConstellationParsing(#[from] ConstellationParsingError),
 
-    #[error("satellite number parsing error: {0}")]
-    PRNParsing(#[from] ParseIntError),
+    #[error("failed to parse PRN numer")]
+    PrnParsing,
 }
 
 impl SV {
@@ -52,7 +53,7 @@ impl SV {
     ///
     /// assert_eq!(sv.constellation, Constellation::GPS);
     /// assert_eq!(sv.prn, 1);
-    /// assert_eq!(sv.launch_date(), None); // only for SBAS vehicles
+    /// assert_eq!(sv.launch_datetime(), None); // only for SBAS vehicles
     /// ```
     pub const fn new(constellation: Constellation, prn: u8) -> Self {
         Self { prn, constellation }
@@ -79,12 +80,14 @@ impl SV {
     /// assert!(egnos_geo23.constellation.is_sbas()); // obviously
     /// assert_eq!(egnos_geo23.constellation, Constellation::EGNOS); // smart builder
     ///
-    /// let launch_date = egnos_geo23.launch_date()
+    /// let launch_date = egnos_geo23.launch_datetime()
     ///     .unwrap(); // only for detailed SBAS
     ///
     /// assert_eq!(launch_date.year(), 2021);
     /// assert_eq!(launch_date.month_name(), MonthName::November);
     /// ```
+    #[cfg(feature = "std")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
     pub fn new_sbas(prn: u8) -> Option<Self> {
         let definition = Self::sbas_definitions(prn)?;
 
@@ -113,7 +116,9 @@ impl SV {
 
     /// Explores SBAS detail database and tries to provide more detail from unique
     /// PRN number (+100).
-    pub(crate) fn sbas_definitions(prn: u8) -> Option<&'static SBASHelper<'static>> {
+    #[cfg(feature = "std")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
+    fn sbas_definitions(prn: u8) -> Option<&'static SBASHelper<'static>> {
         let to_find = (prn as u16) + 100;
         SBAS_VEHICLES
             .iter()
@@ -122,15 +127,44 @@ impl SV {
     }
 
     /// Returns launch date and time expressed as UTC [Epoch].  
-    /// This API is limited to [Constellation::SBAS] vehicles for which we store more details.
-    pub fn launch_date(&self) -> Option<Epoch> {
+    /// This API is limited to [Constellation::SBAS] vehicles for which we have a builtin database.
+    #[cfg(feature = "std")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
+    pub fn launch_datetime(&self) -> Option<Epoch> {
         let definition = SV::sbas_definitions(self.prn)?;
 
-        Some(Epoch::from_gregorian_utc_at_midnight(
-            definition.launch_year,
-            definition.launch_month,
-            definition.launch_day,
-        ))
+        if let Ok(epoch) = Epoch::from_str(definition.launch) {
+            // failures will not happen here,
+            // all entires are tested in CI/CD
+            Some(epoch)
+        } else {
+            None
+        }
+    }
+
+    // /// Returns the [COSPAR] number (unique launch identification code)
+    // /// for this satellite, if known. This API is limited to [Constellation::SBAS] vehicles
+    // /// for which we have a builtin database.
+    // #[cfg(feature = "cospar")]
+    // #[cfg_attr(docsrs, doc(cfg(feature = "cospar")))]
+    // pub fn cospar_number(&self) -> Option<COSPAR> {
+    //     let definitions = SV::sbas_definitions(self.prn)?;
+    //     let launch_datetime = self.launch_datetime()?;
+    //     Some(COSPAR::new(
+    //         launch_datetime.year(),
+    //         definitions.cospar_number,
+    //         definitions.cospar_code,
+    //     ))
+    // }
+
+    /// Returns the space flight [Duration] at this particular point in time
+    /// expressed as [Epoch], for this [SV]. This is limited to [Constellation::SBAS]
+    /// vehicles for which we have a builtin database.
+    #[cfg(feature = "std")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
+    pub fn duration_since_launch(&self, now: Epoch) -> Option<Duration> {
+        let datetime = self.launch_datetime()?;
+        Some(now - datetime)
     }
 
     /// Returns True if [Self] is a [Constellation::BeiDou] geostationnary vehicle
@@ -139,37 +173,72 @@ impl SV {
     }
 }
 
-impl std::str::FromStr for SV {
+#[cfg(feature = "std")]
+impl core::str::FromStr for SV {
     type Err = ParsingError;
-    /*
-     * Parse SV from "XYY" standardized format.
-     * On "sbas" crate feature, we have the ability to identify
-     * vehicles in detail. For example S23 is Eutelsat 5WB.
-     */
+    /// Parses [SV] from "CNN" standard 3 letter code, where
+    /// - C is a 1 letter constellation identifier
+    /// - NN is a 2 digit PRN number
+    ///
+    /// When built with std library supported, the interpretation
+    /// is more detailed for SBAS vehicles, because
+    /// we have a database builtin. For example, S23 is EutelSAT 5WB.
     fn from_str(string: &str) -> Result<Self, Self::Err> {
         let constellation = Constellation::from_str(&string[0..1])?;
-        let prn = string[1..].trim().parse::<u8>()?;
-        let mut ret = SV::new(constellation, prn);
-        if constellation.is_sbas() {
-            // map the SXX to meaningful SBAS
-            if let Some(sbas) = SV::sbas_definitions(prn) {
-                // this can't fail because the SBAS database only
-                // contains valid Constellations
-                ret.constellation = Constellation::from_str(sbas.constellation).unwrap();
+
+        if let Ok(prn) = string[1..].trim().parse::<u8>() {
+            let mut ret = SV::new(constellation, prn);
+            if constellation.is_sbas() {
+                // map the SXX to meaningful SBAS
+                if let Some(sbas) = SV::sbas_definitions(prn) {
+                    // this can't fail because the SBAS database only
+                    // contains valid Constellations
+                    ret.constellation = Constellation::from_str(sbas.constellation).unwrap();
+                }
             }
+            Ok(ret)
+        } else {
+            Err(ParsingError::PrnParsing)
         }
-        Ok(ret)
     }
 }
 
-impl std::fmt::UpperHex for SV {
-    /*
-     * Possibly detailed identity for SBAS vehicles
-     */
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+#[cfg(not(feature = "std"))]
+impl core::str::FromStr for SV {
+    type Err = ParsingError;
+    /// Parses [SV] from "CNN" standard 3 letter code, where
+    /// - C is a 1 letter constellation identifier
+    /// - NN is a 2 digit PRN number
+    ///
+    /// When built without std library supported, the interpretation
+    /// is limited to basic vehicles. For example "G01" is GPS 01,
+    /// and S23 can only be interpreted as SBAS-23, because the SBAS
+    /// database is not builtin without std library.
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        let constellation = Constellation::from_str(&string[0..1])?;
+        if let Ok(prn) = string[1..].trim().parse::<u8>() {
+            Ok(SV::new(constellation, prn))
+        } else {
+            Err(ParsingError::PrnParsing)
+        }
+    }
+}
+
+#[cfg(not(feature = "std"))]
+impl core::fmt::Display for SV {
+    /// Formats this [SV] with possible details (if known in our database).
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        write!(f, "{:x}", self)
+    }
+}
+
+#[cfg(feature = "std")]
+impl core::fmt::Display for SV {
+    /// Formats this [SV] with possible details (if known in our database).
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         if self.constellation.is_sbas() {
             if let Some(sbas) = SV::sbas_definitions(self.prn) {
-                write!(f, "{}", sbas.id)
+                write!(f, "{}", sbas.name)
             } else {
                 write!(f, "{:x}", self)
             }
@@ -179,20 +248,11 @@ impl std::fmt::UpperHex for SV {
     }
 }
 
-impl std::fmt::LowerHex for SV {
-    /*
-     * Prints self as XYY standard format
-     */
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:x}{:02}", self.constellation, self.prn)
-    }
-}
-
-impl std::fmt::Display for SV {
-    /*
-     * Prints self as XYY standard format
-     */
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl core::fmt::LowerHex for SV {
+    /// Formats this [SV] in CNN format, where:
+    /// - C is a single letter [Constellation] identifier
+    /// - NN is a two-digit PRN number
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         write!(f, "{:x}{:02}", self.constellation, self.prn)
     }
 }
@@ -201,6 +261,7 @@ impl std::fmt::Display for SV {
 mod test {
     use super::*;
     use std::str::FromStr;
+
     #[test]
     fn from_str() {
         for (descriptor, expected) in vec![
@@ -233,50 +294,45 @@ mod test {
             );
         }
     }
+
     #[test]
     fn sbas_from_str() {
-        for (desc, parsed, lowerhex, upperhex) in vec![
+        for (desc, parsed, displayed, lowerhex) in vec![
             ("S 3", SV::new(Constellation::SBAS, 3), "S03", "S03"),
             (
                 "S22",
                 SV::new(Constellation::AusNZ, 22),
-                "S22",
                 "INMARSAT-4F1",
+                "S22",
             ),
-            ("S23", SV::new(Constellation::EGNOS, 23), "S23", "ASTRA-5B"),
-            ("S25", SV::new(Constellation::SDCM, 25), "S25", "Luch-5A"),
+            ("S23", SV::new(Constellation::EGNOS, 23), "ASTRA-5B", "S23"),
+            ("S25", SV::new(Constellation::SDCM, 25), "Luch-5A", "S25"),
             ("S 5", SV::new(Constellation::SBAS, 5), "S05", "S05"),
-            ("S48", SV::new(Constellation::ASAL, 48), "S48", "ALCOMSAT-1"),
+            ("S48", SV::new(Constellation::ASAL, 48), "ALCOMSAT-1", "S48"),
         ] {
             let sv = SV::from_str(desc).unwrap();
             assert_eq!(sv, parsed, "failed to parse correct sv from \"{}\"", desc);
+            assert_eq!(sv.to_string(), displayed);
             assert_eq!(format!("{:x}", sv), lowerhex);
-            assert_eq!(format!("{:X}", sv), upperhex);
             assert!(sv.constellation.is_sbas(), "should be sbas");
         }
     }
-    #[test]
-    fn sbas_db_sanity() {
-        for sbas in SBAS_VEHICLES.iter() {
-            /* verify PRN */
-            assert!(sbas.prn > 100);
 
-            /* verify constellation */
-            let constellation = Constellation::from_str(sbas.constellation);
+    #[test]
+    fn test_database() {
+        for sbas in SBAS_VEHICLES.iter() {
+            assert!(sbas.prn > 100, "SBAS PRN should be >100");
+
             assert!(
-                constellation.is_ok(),
-                "sbas database should only contain valid constellations: \"{}\"",
+                Constellation::from_str(sbas.constellation).is_ok(),
+                "corrupt database content: \"{}\"",
                 sbas.constellation,
             );
 
-            let constellation = constellation.unwrap();
-            assert_eq!(constellation.timescale(), Some(TimeScale::GPST));
-
-            /* verify launch date */
-            let _ = Epoch::from_gregorian_utc_at_midnight(
-                sbas.launch_year,
-                sbas.launch_month,
-                sbas.launch_day,
+            assert!(
+                Epoch::from_str(sbas.launch).is_ok(),
+                "corrupt launch datetime: \"{}\"",
+                sbas.launch
             );
         }
     }
