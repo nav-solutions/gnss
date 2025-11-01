@@ -21,7 +21,9 @@ std = [
 
 # Enable COSPAR (launch #ID) definition
 # Requires the std library.
-cospar = []
+cospar = [
+    "std"
+]
 
 # Enable DOMES (IGS station ID) number definition.
 domes = []
@@ -30,6 +32,7 @@ domes = []
 # to select the locally available SBAS service, from ground coordinates.
 # This is not the SBAS identification helper which is built in by default.
 sbas = [
+    "std",
     "dep:geo", 
     "dep:geojson", 
     "dep:bincode", 

@@ -19,7 +19,15 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo build --verbose
+      run: cargo build
+    - name: Build (STD)
+      run: cargo build --features std
+    - name: Build (SBAS)
+      run: cargo build --features sbas
+    - name: Build (DOMES)
+      run: cargo build --features domes
+    - name: Build (COSPAR)
+      run: cargo build --features cospar
     - name: Run tests (all features)
       run: cargo test --all-features --verbose
     - name: Coding style

@@ -25,8 +25,8 @@ pub mod cospar;
 #[cfg_attr(docsrs, doc(cfg(feature = "domes")))]
 pub mod domes;
 
-#[cfg(feature = "sbas")]
-#[cfg_attr(docsrs, doc(cfg(feature = "sbas")))]
+#[cfg(all(feature = "sbas", feature = "std"))]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "sbas", feature = "sbas"))))]
 pub use sbas::sbas_selector;
 
 #[cfg(feature = "sbas")]
