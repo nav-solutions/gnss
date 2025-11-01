@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub enum Error {
     #[error("invalid domes format")]
     InvalidFormat,
-    
+
     #[error("invalid domes length")]
     InvalidLength,
 }
