@@ -1,6 +1,7 @@
-use std::{env, fs::File, io::Write, path::Path};
-
 use serde::Deserialize;
+
+#[cfg(feature = "std")]
+use std::{env, fs::File, io::Write, path::Path};
 
 /*
  * We use an intermediate struct

@@ -1,13 +1,17 @@
 //! Space vehicle definition
-use hifitime::{Duration, Epoch, TimeScale};
+use hifitime::TimeScale;
 use thiserror::Error;
-
-use core::str::FromStr;
 
 use crate::constellation::{Constellation, ParsingError as ConstellationParsingError};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "std")]
+use hifitime::{Duration, Epoch};
+
+#[cfg(feature = "std")]
+use std::str::FromStr;
 
 // #[cfg(feature = "cospar")]
 // use crate::prelude::COSPAR;
@@ -167,7 +171,7 @@ impl SV {
         Some(now - datetime)
     }
 
-    /// Returns True if [Self] is a [Constellation::BeiDou] geostationnary vehicle
+    /// Returns True if this [SV] is a [Constellation::BeiDou] geostationnary satellite.
     pub fn is_beidou_geo(&self) -> bool {
         self.constellation == Constellation::BeiDou && (self.prn < 6 || self.prn > 58)
     }
