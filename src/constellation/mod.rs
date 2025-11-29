@@ -97,6 +97,8 @@ impl core::fmt::Display for Constellation {
     /// For example:
     /// - "GPS (US)" for american constellation
     /// - "Glonass (RU)" for russian constellation
+    ///
+    /// If you don't want the country code (example: "GPS" for american constellation), use [core::fmt::UpperExp] formatting.
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         match self {
             Self::GPS => write!(f, "GPS (US)"),

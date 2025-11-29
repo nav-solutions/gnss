@@ -1,4 +1,4 @@
-use crate::prelude::{Constellation, SV, TimeScale, Epoch};
+use crate::prelude::{Constellation, Epoch, TimeScale, SV};
 use pyo3::prelude::*;
 
 #[pymodule]

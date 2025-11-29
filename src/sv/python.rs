@@ -1,6 +1,5 @@
 use crate::prelude::{Constellation, TimeScale, SV};
 use pyo3::prelude::*;
-use std::str::FromStr;
 
 #[pymethods]
 impl SV {
@@ -27,14 +26,7 @@ impl SV {
     ///     Some(launch_date));
     /// ```
     #[new]
-    fn py_new(constellation: &str, prn: u8) -> PyResult<Self> {
-        let constellation = Constellation::from_str(constellation).or(Err(
-            pyo3::exceptions::PyValueError::new_err(format!(
-                "Unknown constellation: {}",
-                constellation,
-            )),
-        ))?;
-
+    fn py_new(constellation: Constellation, prn: u8) -> PyResult<Self> {
         Ok(Self { prn, constellation })
     }
 
@@ -44,31 +36,27 @@ impl SV {
     }
 
     #[setter(prn)]
-    fn set_prn(&mut self, value: u8) -> PyResult<()> {
+    fn set_prn(&mut self, value: u8) {
         self.prn = value;
-        Ok(())
     }
 
     #[getter(constellation)]
-    fn get_constellation(&self) -> String {
-        self.constellation.to_string()
+    fn get_constellation(&self) -> Constellation {
+        self.constellation
     }
 
     #[setter(constellation)]
-    fn set_constellation(&mut self, value: &str) -> PyResult<()> {
-        let constellation = Constellation::from_str(value).or(Err(
-            pyo3::exceptions::PyValueError::new_err(format!("Unknown constellation: {}", value,)),
-        ))?;
-
-        self.constellation = constellation;
-        Ok(())
+    fn set_constellation(&mut self, value: Constellation) {
+        self.constellation = value;
     }
 
     #[pyo3(name = "timescale")]
     fn py_timescale(&self) -> PyResult<TimeScale> {
-        let ts = self.timescale().ok_or(
-            pyo3::exceptions::PyValueError::new_err(format!("timescale not defined"))
-        )?;
+        let ts = self
+            .timescale()
+            .ok_or(pyo3::exceptions::PyValueError::new_err(format!(
+                "timescale not defined"
+            )))?;
 
         Ok(ts)
     }
