@@ -18,6 +18,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: install python
+      run: pip install pytest
     - name: Build
       run: cargo build
     - name: Build (STD)
@@ -30,8 +32,14 @@ jobs:
       run: cargo build --features cospar
     - name: Build (Python)
       run: cargo build --features python
-    - name: Run tests (all features)
+
+    - name: tests (all features)
       run: cargo test --features all-but-python
+
+    - name: Python tests (all features)
+      uses: PyO3/maturin-action@v1
+      run: maturin develop && pytest
+
     - name: Coding style
       run: cargo fmt --all -- --check
     - name: Documentation
