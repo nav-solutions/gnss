@@ -29,7 +29,7 @@ cospar = [
 domes = []
 
 # Enable pythonized structures
-python = ["dep:pyo3", "hifitime/python"]
+python = ["std", "dep:pyo3", "hifitime/python"]
 
 # This feature enables the "sbas_selector" function,
 # to select the locally available SBAS service, from ground coordinates.

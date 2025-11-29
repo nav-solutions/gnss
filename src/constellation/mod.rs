@@ -11,8 +11,6 @@ use pyo3::prelude::pyclass;
 #[cfg(feature = "python")]
 mod python;
 
-use core::str::FromStr;
-
 /// Constellation parsing & identification related errors
 #[derive(Error, Clone, Debug, PartialEq)]
 pub enum ParsingError {
