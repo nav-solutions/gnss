@@ -38,7 +38,7 @@ jobs:
 
     - name: Python package
       run: |
-        sudo apt-get install maturin
+        cargo install maturin
         pip install pytest
         maturin develop && pytest
 
