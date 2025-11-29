@@ -1,61 +1,33 @@
-<<<<<<< HEAD:src/sv/mod.rs
-//! Satellite vehicle definition
-use thiserror::Error;
-
-use crate::{
-    constellation::{Constellation, ParsingError as ConstellationParsingError},
-    prelude::{Epoch, TimeScale},
-};
-=======
 //! Space vehicle definition
 use hifitime::TimeScale;
 use thiserror::Error;
 
 use crate::constellation::{Constellation, ParsingError as ConstellationParsingError};
->>>>>>> main:src/sv.rs
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-<<<<<<< HEAD:src/sv/mod.rs
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
-
-#[cfg(feature = "python")]
-mod python;
-
-/// [SV] (Satellite Vehicle) definition.
-=======
 #[cfg(feature = "std")]
 use hifitime::{Duration, Epoch};
 
 #[cfg(feature = "std")]
 use std::str::FromStr;
 
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
+
+#[cfg(feature = "python")]
+mod python;
+
 // #[cfg(feature = "cospar")]
 // use crate::prelude::COSPAR;
 
 /// ̀SV describes a Satellite Vehicle
->>>>>>> main:src/sv.rs
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "python", pyclass)]
 #[cfg_attr(feature = "python", pyo3(module = "gnss"))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SV {
-<<<<<<< HEAD:src/sv/mod.rs
-    /// PRN identification number for this vehicle.
-    pub prn: u8,
-
-    /// [Constellation] to which this vehicle belongs to.
-    pub constellation: Constellation,
-}
-
-// Database, built by build.rs, for detailed SBAS vehicle identification
-include!(concat!(env!("OUT_DIR"), "/sbas.rs"));
-
-/// Issues during parsing
-#[derive(Error, Debug)]
-=======
     /// PRN identification number for this vehicle
     pub prn: u8,
 
@@ -69,24 +41,10 @@ include!(concat!(env!("OUT_DIR"), "/sbas.rs"));
 
 /// ̀[SV] parsing related issues.
 #[derive(Error, Debug, Clone, PartialEq)]
->>>>>>> main:src/sv.rs
 pub enum ParsingError {
     #[error("constellation parsing error: {0}")]
     ConstellationParsing(#[from] ConstellationParsingError),
 
-<<<<<<< HEAD:src/sv/mod.rs
-    #[error("invalid PRN number")]
-    InvalidPRN,
-}
-
-impl SV {
-    /// Creates a new [SV] from [Constellation] and PRN number.
-    pub fn new(constellation: Constellation, prn: u8) -> Self {
-        Self { constellation, prn }
-    }
-
-    /// Returns the [Timescale] to which this satellite belongs to.
-=======
     #[error("failed to parse PRN numer")]
     PrnParsing,
 }
@@ -153,13 +111,13 @@ impl SV {
     }
 
     /// Returns [Timescale] to which [Self] belongs to.
->>>>>>> main:src/sv.rs
     /// ```
     /// extern crate gnss_rs as gnss;
     ///
+    /// use hifitime::TimeScale;
     /// use gnss::sv;
-    /// use std::str::FromStr;
     /// use gnss::prelude::*;
+    /// use std::str::FromStr;
     ///
     /// assert_eq!(sv!("G01").timescale(), Some(TimeScale::GPST));
     /// assert_eq!(sv!("E13").timescale(), Some(TimeScale::GST));
@@ -168,18 +126,11 @@ impl SV {
         self.constellation.timescale()
     }
 
-<<<<<<< HEAD:src/sv/mod.rs
-    /// Tries to retrieve SBAS/GEO details for this satellite.
-    /// We use the PRN# (+100, according to SBAS definitions)
-    /// as an identifier in the database.
-    pub(crate) fn sbas_definitions(prn: u8) -> Option<&'static SBASHelper<'static>> {
-=======
     /// Explores SBAS detail database and tries to provide more detail from unique
     /// PRN number (+100).
     #[cfg(feature = "std")]
     #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
     fn sbas_definitions(prn: u8) -> Option<&'static SBASHelper<'static>> {
->>>>>>> main:src/sv.rs
         let to_find = (prn as u16) + 100;
         SBAS_VEHICLES
             .iter()
@@ -187,16 +138,11 @@ impl SV {
             .reduce(|e, _| e)
     }
 
-<<<<<<< HEAD:src/sv/mod.rs
-    /// Returns launch date and time, expressed as [Epoch], for this particular satellite. NB: this is limited to SBAS/GEO vehicles.
-    pub fn launch_date(&self) -> Option<Epoch> {
-=======
     /// Returns launch date and time expressed as UTC [Epoch].  
     /// This API is limited to [Constellation::SBAS] vehicles for which we have a builtin database.
     #[cfg(feature = "std")]
     #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
     pub fn launch_datetime(&self) -> Option<Epoch> {
->>>>>>> main:src/sv.rs
         let definition = SV::sbas_definitions(self.prn)?;
 
         if let Ok(epoch) = Epoch::from_str(definition.launch) {
@@ -208,9 +154,6 @@ impl SV {
         }
     }
 
-<<<<<<< HEAD:src/sv/mod.rs
-    /// Returns True if [Self] is a BeiDou Geostationnary satellite
-=======
     // /// Returns the [COSPAR] number (unique launch identification code)
     // /// for this satellite, if known. This API is limited to [Constellation::SBAS] vehicles
     // /// for which we have a builtin database.
@@ -237,7 +180,6 @@ impl SV {
     }
 
     /// Returns True if this [SV] is a [Constellation::BeiDou] geostationnary satellite.
->>>>>>> main:src/sv.rs
     pub fn is_beidou_geo(&self) -> bool {
         self.constellation == Constellation::BeiDou && (self.prn < 6 || self.prn > 58)
     }
@@ -246,25 +188,6 @@ impl SV {
 #[cfg(feature = "std")]
 impl core::str::FromStr for SV {
     type Err = ParsingError;
-<<<<<<< HEAD:src/sv/mod.rs
-
-    fn from_str(string: &str) -> Result<Self, Self::Err> {
-        let constellation = Constellation::from_str(&string[0..1])?;
-
-        let prn = string[1..]
-            .trim()
-            .parse::<u8>()
-            .or(Err(ParsingError::InvalidPRN))?;
-
-        let mut ret = SV { constellation, prn };
-
-        if constellation.is_sbas() {
-            // map the SXX to meaningful SBAS
-            if let Some(sbas) = SV::sbas_definitions(prn) {
-                // this can't fail because the SBAS database only
-                // contains valid Constellations
-                ret.constellation = Constellation::from_str(sbas.constellation).unwrap();
-=======
     /// Parses [SV] from "CNN" standard 3 letter code, where
     /// - C is a 1 letter constellation identifier
     /// - NN is a 2 digit PRN number
@@ -284,17 +207,11 @@ impl core::str::FromStr for SV {
                     // contains valid Constellations
                     ret.constellation = Constellation::from_str(sbas.constellation).unwrap();
                 }
->>>>>>> main:src/sv.rs
             }
             Ok(ret)
         } else {
             Err(ParsingError::PrnParsing)
         }
-<<<<<<< HEAD:src/sv/mod.rs
-
-        Ok(ret)
-=======
->>>>>>> main:src/sv.rs
     }
 }
 

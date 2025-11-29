@@ -28,9 +28,6 @@ cospar = [
 # Enable DOMES (IGS station ID) number definition.
 domes = []
 
-# Enable COSPAR (Vehicle Launch #ID) definition
-cospar = []
-
 # Enable pythonized structures
 python = ["dep:pyo3", "hifitime/python"]
 
@@ -61,7 +58,6 @@ thiserror = "2"
 hifitime = "4.1"
 lazy_static = "1"
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
-geo = { version = "0.29", optional = true }
 wkt = { version = "0.10", default-features = false, optional = true }
 pyo3 = { version = "0.25", features = ["extension-module"], optional = true }
 geo = { version = "0.31", optional = true }

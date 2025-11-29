@@ -1,4 +1,4 @@
-//! Constellation definition
+//! GNSS constellations
 use hifitime::TimeScale;
 use thiserror::Error;
 
@@ -18,81 +18,12 @@ pub enum ParsingError {
     Unknown,
 }
 
-/// [Constellation] describes all known `GNSS` systems.
+/// Describes all known `GNSS` constellations
 #[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "python", pyclass)]
 #[cfg_attr(feature = "python", pyo3(module = "gnss"))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Constellation {
-<<<<<<< HEAD:src/constellation/mod.rs
-    /// [Self::GPS] american constellation
-    #[default]
-    GPS,
-
-    /// [Self::Glonass] russian constellation
-    Glonass,
-
-    /// [Self::BeiDou] chinese constellation.
-    /// This constellation contains both IGSO, GEO and standard
-    /// orbits. Yet a SBAS augmentation also exists and is defined here.
-    /// It is not clear whether BeiDou GEO vehicles belon to [Self::BDSBAS] yet.
-    BeiDou,
-
-    /// [Self::QZSS] japanese constellation
-    QZSS,
-
-    /// [Self::Galileo] european constellation
-    Galileo,
-
-    /// [Self::IRNSS] constellation, renamed "NavIC"
-    IRNSS,
-
-    /// [Self::WAAS] american augmentation system
-    WAAS,
-
-    /// [Self::EGNOS] european augmentation system
-    EGNOS,
-
-    /// [Self::MSAS] japanese augmentation system
-    MSAS,
-
-    /// [Self::GAGAN] indian augmentation system
-    GAGAN,
-
-    /// [Self::BDSBAS] chinese augmentation system.
-    BDSBAS,
-
-    /// [Self::KASS] south Korean augmentation system
-    KASS,
-
-    /// [Self::SDCM] russian augmentation system
-    SDCM,
-
-    /// [Self::ASBAS] south-african augmentation system
-    ASBAS,
-
-    /// [Self::SPAN] australian / NZ augmentation system
-    SPAN,
-
-    /// Generic [Self::SBAS] is used to describe SBAS
-    /// systems undefined in this database.
-    SBAS,
-
-    /// [Self::AusNZ] australian / NZ geoscience system
-    AusNZ,
-
-    /// [Self::GBAS] UK augmentation system
-    GBAS,
-
-    /// [Self::NSAS] nigerian augmentation system
-    NSAS,
-
-    /// [Self::ASAL] algerian augmentation system
-    ASAL,
-
-    /// [Self::MIXED] is used to describe products or datasets
-    /// that contain several [Constellation]s.
-=======
     /// American constellation
     #[default]
     GPS,
@@ -156,7 +87,6 @@ pub enum Constellation {
 
     /// Describes the combination of [Constellation]s,
     /// used by modern receivers and RINEX files.
->>>>>>> main:src/constellation.rs
     Mixed,
 }
 
@@ -276,7 +206,7 @@ impl core::fmt::LowerHex for Constellation {
 }
 
 impl Constellation {
-    /// Returns true if this [Constellation] is an augmentation system
+    /// Returns true if Self is an augmentation system
     pub fn is_sbas(&self) -> bool {
         matches!(
             *self,
@@ -297,14 +227,6 @@ impl Constellation {
         )
     }
 
-<<<<<<< HEAD:src/constellation/mod.rs
-    pub(crate) fn is_mixed(&self) -> bool {
-        matches!(self, Constellation::Mixed)
-    }
-
-    /// Returns associated time scale. Returns None
-    /// if related time scale is not supported.
-=======
     /// Returns the country code two or three letter code,
     /// for this [Constellation], when that applies.
     /// For example:
@@ -425,7 +347,6 @@ impl Constellation {
     /// Returns the [TimeScale] this [Constellation] represents.
     /// Returns [None] when this operation does not apply to given [Constellation].
     /// [Constellation::SBAS] are said to be refered to [TimeScale::GPST]
->>>>>>> main:src/constellation.rs
     pub fn timescale(&self) -> Option<TimeScale> {
         match self {
             Self::GPS => Some(TimeScale::GPST),
@@ -462,56 +383,6 @@ impl core::str::FromStr for Constellation {
             _ => {},
         }
 
-<<<<<<< HEAD:src/constellation/mod.rs
-impl std::fmt::LowerHex for Constellation {
-    /// Formats this [Constellation] using a single letter.
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Self::GPS => write!(f, "G"),
-            Self::Glonass => write!(f, "R"),
-            Self::Galileo => write!(f, "E"),
-            Self::BeiDou => write!(f, "C"),
-            Self::QZSS => write!(f, "J"),
-            Self::IRNSS => write!(f, "I"),
-            c => {
-                if c.is_sbas() {
-                    write!(f, "S")
-                } else if c.is_mixed() {
-                    write!(f, "M")
-                } else {
-                    Err(std::fmt::Error)
-                }
-            },
-        }
-    }
-}
-
-impl std::fmt::UpperHex for Constellation {
-    /// Formats this [Constellation] using a standard 3 letter code.
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Self::GPS => write!(f, "GPS"),
-            Self::Glonass => write!(f, "GLO"),
-            Self::Galileo => write!(f, "GAL"),
-            Self::BeiDou => write!(f, "BDS"),
-            Self::QZSS => write!(f, "QZSS"),
-            Self::IRNSS => write!(f, "IRNSS"),
-            Self::SBAS => write!(f, "SBAS"),
-            Self::WAAS => write!(f, "WAAS"),
-            Self::AusNZ => write!(f, "AUSNZ"),
-            Self::EGNOS => write!(f, "EGNOS"),
-            Self::KASS => write!(f, "KASS"),
-            Self::GAGAN => write!(f, "GAGAN"),
-            Self::GBAS => write!(f, "GBAS"),
-            Self::NSAS => write!(f, "NSAS"),
-            Self::MSAS => write!(f, "MSAS"),
-            Self::SPAN => write!(f, "SPAN"),
-            Self::SDCM => write!(f, "SDCM"),
-            Self::BDSBAS => write!(f, "BDSBAS"),
-            Self::ASBAS => write!(f, "ASBAS"),
-            Self::ASAL => write!(f, "ASAL"),
-            Self::Mixed => write!(f, "MIXED"),
-=======
         // smart guess
         if s.contains("gps") {
             Ok(Self::GPS)
@@ -577,7 +448,6 @@ impl std::fmt::UpperHex for Constellation {
             Ok(Self::SBAS)
         } else {
             Err(ParsingError::Unknown)
->>>>>>> main:src/constellation.rs
         }
     }
 }
@@ -619,14 +489,6 @@ mod tests {
         }
     }
 
-<<<<<<< HEAD:src/constellation/mod.rs
-        for desc in ["X", "x", "GPX", "gpx", "unknown", "blah"] {
-            assert!(Constellation::from_str(desc).is_err());
-        }
-    }
-
-=======
->>>>>>> main:src/constellation.rs
     #[test]
     fn formating() {
         for (constellation, displayed, upper_exp, upper_hex) in [
@@ -655,20 +517,6 @@ mod tests {
     }
 
     #[test]
-<<<<<<< HEAD:src/constellation/mod.rs
-    fn test_sbas() {
-        for sbas in ["WAAS", "KASS", "EGNOS", "ASBAS", "MSAS", "GAGAN", "ASAL"] {
-            assert!(Constellation::from_str(sbas).unwrap().is_sbas());
-        }
-    }
-
-    #[test]
-    fn timescale() {
-        for (gnss, expected) in [
-            (Constellation::GPS, TimeScale::GPST),
-            (Constellation::Galileo, TimeScale::GST),
-            (Constellation::BeiDou, TimeScale::BDT),
-=======
     fn test_is_sbas() {
         for (constellation_str, is_sbas) in [
             ("WAAS", true),
@@ -682,7 +530,6 @@ mod tests {
             ("BeiDou", false),
             ("BDS", false),
             ("QZSS", false),
->>>>>>> main:src/constellation.rs
         ] {
             let constellation = Constellation::from_str(constellation_str).unwrap_or_else(|_| {
                 panic!(

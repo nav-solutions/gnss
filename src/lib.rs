@@ -25,15 +25,9 @@ pub mod cospar;
 #[cfg_attr(docsrs, doc(cfg(feature = "domes")))]
 pub mod domes;
 
-<<<<<<< HEAD
 #[cfg(feature = "python")]
 mod python;
 
-pub mod prelude {
-    pub use crate::{constellation::Constellation, sv::SV};
-
-    #[cfg(feature = "cospar")]
-=======
 #[cfg(all(feature = "sbas", feature = "std"))]
 #[cfg_attr(docsrs, doc(cfg(all(feature = "sbas", feature = "sbas"))))]
 pub use sbas::sbas_selector;
@@ -41,19 +35,14 @@ pub use sbas::sbas_selector;
 #[cfg(feature = "sbas")]
 pub use geo::geometry::Point;
 
-// prelude (pkg)
 pub mod prelude {
     pub use crate::{constellation::Constellation, sv::SV};
 
     #[cfg(all(feature = "cospar", feature = "std"))]
->>>>>>> main
     pub use crate::cospar::COSPAR;
 
     #[cfg(feature = "domes")]
     pub use crate::domes::{TrackingPoint as DOMESTrackingPoint, DOMES};
-<<<<<<< HEAD
 
     pub use hifitime::prelude::{Epoch, TimeScale};
-=======
->>>>>>> main
 }
