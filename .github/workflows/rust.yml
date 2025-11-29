@@ -36,9 +36,11 @@ jobs:
     - name: tests (all features)
       run: cargo test --features all-but-python
 
-    - name: Python tests (all features)
-      uses: PyO3/maturin-action@v1
-      run: maturin develop && pytest
+    - name: Python package
+      run: |
+        apt-get install maturin
+        pip install pytest
+        maturin develop && pytest
 
     - name: Coding style
       run: cargo fmt --all -- --check

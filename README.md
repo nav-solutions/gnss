@@ -144,7 +144,7 @@ Amongst them, be sure to checkout:
 - [Hifitime](https://github.com/nyx-space/hifitime): Timescale and related calculations
 - [CGGTTS](https://github.com/nav-solutions/cggtts): files production and processing
 
-## Python support
+## Python bindings
 
 Install from pypi directly:
 
@@ -152,22 +152,27 @@ Install from pypi directly:
 pip3 install gnss-rs
 ```
 
-Python API
+Getting started:
 
 ```python
-from gnss_rs import SV
+from gnss import Constellation, SV, TimeScale
 
-g01 = SV("GPS", 10)
+gps = Constellation.GPS
+assert "{}".format(gps), "GPS (US)"
+assert "{:x}".format(gps), "GPS" # drop country code
 
-assert g01.prn == 10
-assert g01.constellation == "GPS"
-assert g01.timescale() == "GPST"
+# smart builder
+assert Constellation.from_country_code("US"), Constellation.GPS
 
-g01.constellation = "BDS"
-assert g01.constellation == "BDS"
+# PRN# is not checked, it is up to you to create valid satellites.
+sat = SV(Constellation.GPS, 10)
+assert sat.prn == 10
+assert sat.timescale() == TimeScale.GPST
 
-g01.constellation = "WAAS"
-assert g01.is_sbas()
+sat.constellation = Constellation.BeiDou
+assert "{}".format(sat.constellation, "BeiDou (CH)")
+assert "{:x}".format(sat.constellation, "BDS") # drop country code
+assert sat.timescale() == TimeScale.BDT
 ```
 
 ## License
