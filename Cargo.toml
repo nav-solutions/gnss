@@ -12,18 +12,14 @@ edition = "2021"
 readme = "README.md"
 
 [features]
-default = []
+default = [] # no-std by default
 
-# no-std by default
 std = [
     "hifitime/std"
 ]
 
-# Enable COSPAR (launch #ID) definition
-# Requires the std library.
-cospar = [
-    "std"
-]
+# Enable COSPAR (launch #ID) definition. Requires std-lib.
+cospar = ["std"]
 
 # Enable DOMES (IGS station ID) number definition.
 domes = []
@@ -40,6 +36,14 @@ sbas = [
     "dep:geojson", 
     "dep:bincode", 
     "dep:once_cell", 
+]
+
+# Feature we use to run our tests
+all-but-python = [
+    "sbas",
+    "domes",
+    "cospar",
+    "std",
 ]
 
 [package.metadata.docs.rs]

@@ -28,8 +28,10 @@ jobs:
       run: cargo build --features domes
     - name: Build (COSPAR)
       run: cargo build --features cospar
+    - name: Build (Python)
+      run: cargo build --features python
     - name: Run tests (all features)
-      run: cargo test --all-features --verbose
+      run: cargo test --features all-but-python
     - name: Coding style
       run: cargo fmt --all -- --check
     - name: Documentation
