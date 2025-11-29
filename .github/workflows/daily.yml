@@ -19,6 +19,14 @@ jobs:
         include:
           - name: Default build
             opts: -r
+          - name: std lib
+            opts: --features std
+          - name: SBAS feature
+            opts: --features sbas
+          - name: DOMES feature
+            opts: --features domes
+          - name: COSPAR feature
+            opts: --features cospar
           - name: All Features
             opts: --all-features
 

@@ -1,19 +1,29 @@
 [package]
 name = "gnss-rs"
-version = "2.5.0"
+version = "2.6.0"
 license = "MPL-2.0"
 authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
 description = "GNSS constellations"
 homepage = "https://github.com/nav-solutions"
 repository = "https://github.com/nav-solutions/gnss"
-keywords = ["gnss", "gps", "glonass", "galileo"]
+keywords = ["gnss", "science", "no-std", "gps"]
 categories = ["science", "science::geo"]
 edition = "2021"
 readme = "README.md"
 
 [features]
-# no features enabled by default
 default = []
+
+# no-std by default
+std = [
+    "hifitime/std"
+]
+
+# Enable COSPAR (launch #ID) definition
+# Requires the std library.
+cospar = [
+    "std"
+]
 
 # Enable DOMES (IGS station ID) number definition.
 domes = []
@@ -24,29 +34,37 @@ cospar = []
 # Enable pythonized structures
 python = ["dep:pyo3", "hifitime/python"]
 
-# This features provides a SBAS system selection helper
-# from actual Geo coordinates on the ground.
-sbas = ["geo", "wkt"]
+# This feature enables the "sbas_selector" function,
+# to select the locally available SBAS service, from ground coordinates.
+# This is not the SBAS identification helper which is built in by default.
+sbas = [
+    "std",
+    "dep:geo", 
+    "dep:geojson", 
+    "dep:bincode", 
+    "dep:once_cell", 
+]
 
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docrs", "--generate-link-to-definition"]
 
 [build-dependencies]
-serde_json = { version = "1", features = ["preserve_order"] }
+hifitime = "4.1"
+geojson = { version = "0.24" }
+bincode = { version = "2", optional = true }
 serde = { version = "1", default-features = false, features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
 
 [dependencies]
 thiserror = "2"
 hifitime = "4.1"
-lazy_static = "1.5"
-
-# serdes
+lazy_static = "1"
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
-
-# sbas
 geo = { version = "0.29", optional = true }
 wkt = { version = "0.10", default-features = false, optional = true }
-
-# python
 pyo3 = { version = "0.25", features = ["extension-module"], optional = true }
+geo = { version = "0.31", optional = true }
+bincode = { version = "2", optional = true }
+once_cell = { version = "1", optional = true }
+geojson = { version = "0.24", optional = true }

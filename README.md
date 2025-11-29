@@ -23,85 +23,100 @@ Add "gnss" to your Cargo.toml
 gnss-rs = "2"
 ```
 
-Import the library:
+## Features
+
+- `std`: this library is no-std compatible by default.
+- `sbas`: activates the detailed SBAS database, for more information about SBAS vehicles.
+This feature requires `std` library.
+- `domes`: defines the DOMES reference site number.
+This feature does not require `std` library.
+- `cospar`: defines the COSPAR satellite launch number
+This feature requires `std` library.
+
+## Constellation database
+
+This library defines both constellations (single enum) and satellites (SV structure) from these constellations.
 
 ```rust
-extern crate gnss_rs as gnss;
-```
-
-## Space Vehicles
-
-```rust
-extern crate gnss_rs as gnss;
-
-use gnss::sv;
-use gnss::prelude::*;
 use std::str::FromStr;
-use hifitime::TimeScale;
+use gnss_rs::prelude::*;
+use hifitime::{TimeScale, Epoch};
 
+// It is possible to define satellites that do not exist
 let sv = SV::new(Constellation::GPS, 1);
 
-assert_eq!(sv.constellation, Constellation::GPS);
 assert_eq!(sv.prn, 1);
+assert_eq!(sv.constellation, Constellation::GPS);
+assert_eq!(sv.timescale(), Some(TimeScale::GPST)); // convenient method
+assert_eq!(sv.constellation.country_code(), Some("US".to_string())); // convenient method
 
-assert_eq!(sv.timescale(), Some(TimeScale::GPST));
+assert_eq!(Constellation::GPS.to_string(), "GPS (US)"); // readable format
+assert_eq!(format!("{:E}", Constellation::GPS), "GPS"); // standard accronym
+assert_eq!(format!("{:x}", Constellation::GPS), "G"); // RINEX like format
 
-// undefined launch date
-assert_eq!(sv.launch_date(), None);
+assert_eq!(Constellation::from_str("G"), Ok(Constellation::GPS)); // reciprocal
+assert_eq!(Constellation::from_str("GPS (US)"), Ok(Constellation::GPS)); // reciprocal
+
+assert_eq!(sv.launch_datetime(), None); // only available for GEO satellites (SBAS)
 ```
 
-## SBAS support
+## SBAS (Geostationary services)
 
-We support SBAS (geostationary augmentations) systems. 
+We offer convenient methods to handle SBAS (geostationary services).
+For example, we integrate a builtin database to define most known SBAS services.
+    
+```rust
+use std::str::FromStr;
+use gnss_rs::prelude::*;
+use hifitime::{TimeScale, Epoch, MonthName};
+
+let egnos = Constellation::EGNOS;
+
+assert!(egnos.is_sbas(), "obvious");
+assert_eq!(egnos.timescale(), Some(TimeScale::GPST)); // we refer GEO services to GPST
+
+// convenient builder for RINEX and other similar applications.
+// Must be known to our database for this to work.
+// The database is defined in data/sbas.json
+let geo23 = SV::new_sbas(23).unwrap();
+assert_eq!(geo23.constellation, Constellation::EGNOS);
+
+// convenient information using our builtin database
+assert_eq!(geo23.launch_datetime().and_then(|e| Some(e.to_string())), Some("2021-11-01T00:00:00 UTC".to_string()));
+```
+
+All this information is provided by default. If you compiled the library with the "sbas" option,
+we provide a selection helper that helps select the GEO service, for given user coordinates.
 
 ```rust
-extern crate gnss_rs as gnss;
+use geo::Point;
 
-use gnss::sv;
-use gnss::prelude::*;
+use gnss_rs::{
+    sbas_selector, 
+    prelude::Constellation,
+};
+
+let paris = Point::new(2.38268, 48.808378); //x=longitude°, y=latitude°
+assert_eq!(sbas_selector(paris), Some(Constellation::EGNOS));
+```
+
+## COSPAR definition
+
+When compiled with the "COSPAR" option, the library defines the `COSPAR` 
+launch identifier (unique number).
+
+```rust
+use gnss_rs::prelude::COSPAR;
 use std::str::FromStr;
-use hifitime::{Epoch, TimeScale};
 
-let sv = sv!("S23");
-assert_eq!(sv.constellation, Constellation::EGNOS);
-
-let launch_date = Epoch::from_str("2021-11-01T00:00:00 UTC")
-    .unwrap();
-
-assert_eq!(sv.launch_date(), Some(launch_date));
+assert!(COSPAR::from_str("2018-080A").is_ok());
 ```
 
-## Python support
+## DOMES definition
 
-Install from pypi directly:
+When compiled with the "DOMES" option, the library provides the definition
+of [DOMES (IGS) site identification number](https://itrf.ign.fr/en/network/domes/description).
 
-```bash
-pip3 install gnss-rs
-```
-
-Python API
-
-```python
-from gnss_rs import SV
-
-g01 = SV("GPS", 10)
-
-assert g01.prn == 10
-assert g01.constellation == "GPS"
-assert g01.timescale() == "GPST"
-
-g01.constellation = "BDS"
-assert g01.constellation == "BDS"
-
-
-g01.constellation = "WAAS"
-assert g01.is_sbas()
-```
-
-## Other definitions and features
-
-Other definitions and features exist. Use compilation options (crate features) to unlock them.
-The idea is to maintain a very minimal default library.
 
 - The SERDE features unlocks serialization/deserialization of the main structures defined here.
 
@@ -129,7 +144,33 @@ Amongst them, be sure to checkout:
 - [Hifitime](https://github.com/nyx-space/hifitime): Timescale and related calculations
 - [CGGTTS](https://github.com/nav-solutions/cggtts): files production and processing
 
+## Python support
+
+Install from pypi directly:
+
+```bash
+pip3 install gnss-rs
+```
+
+Python API
+
+```python
+from gnss_rs import SV
+
+g01 = SV("GPS", 10)
+
+assert g01.prn == 10
+assert g01.constellation == "GPS"
+assert g01.timescale() == "GPST"
+
+g01.constellation = "BDS"
+assert g01.constellation == "BDS"
+
+g01.constellation = "WAAS"
+assert g01.is_sbas()
+```
+
 ## License
 
 This library is part of the [NAV-Solutions framework](https://github.com/nav-solutions) which
-is delivered under the [Mozilla V2 Public](https://www.mozilla.org/en-US/MPL/2.0) license.
+is licensed under [Mozilla V2 Public](https://www.mozilla.org/en-US/MPL/2.0) license.

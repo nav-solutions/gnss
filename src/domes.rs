@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 pub enum Error {
     #[error("invalid domes format")]
     InvalidFormat,
+
     #[error("invalid domes length")]
     InvalidLength,
 }
@@ -18,6 +19,7 @@ pub enum Error {
 pub enum TrackingPoint {
     /// Monument (pole, pillar, geodetic marker..)
     Monument,
+
     /// Instrument reference point.
     /// This is usually the antenna reference point, but it can be any
     /// location referred to an instrument, like a specific location
@@ -32,15 +34,18 @@ pub enum TrackingPoint {
 pub struct DOMES {
     /// Area / Country code (3 digits)
     pub area: u16,
+
     /// Area site number (2 digits)
     pub site: u8,
+
     /// Tracking point
     pub point: TrackingPoint,
+
     /// Sequential number (3 digits)
     pub sequential: u16,
 }
 
-impl std::str::FromStr for DOMES {
+impl core::str::FromStr for DOMES {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() == 9 {
@@ -66,8 +71,8 @@ impl std::str::FromStr for DOMES {
     }
 }
 
-impl std::fmt::Display for DOMES {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl core::fmt::Display for DOMES {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         let point = match self.point {
             TrackingPoint::Monument => 'M',
             TrackingPoint::Instrument => 'S',

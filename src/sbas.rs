@@ -1,161 +1,104 @@
-//! Geostationary augmentation systems
-#[cfg(feature = "sbas")]
+//! SBAS (geo service) selector helper.
+use bincode::{config, Decode};
+
 use crate::prelude::Constellation;
+use core::str::FromStr;
+use once_cell::sync::Lazy;
 
-//#[cfg(feature = "serde")]
-//use serde::{Deserialize, Serialize};
+use geo::{Contains, LineString, Point, Polygon};
 
-#[cfg(feature = "sbas")]
-use geo::{point, Contains, LineString};
-#[cfg(feature = "sbas")]
-use std::iter::FromIterator;
-#[cfg(feature = "sbas")]
-use std::str::FromStr;
-#[cfg(feature = "sbas")]
-use wkt::{Geometry, Wkt, WktFloat};
-
-#[cfg(feature = "sbas")]
-fn wkt_line_string_to_geo<T>(line_string: &wkt::types::LineString<T>) -> LineString<T>
-where
-    T: WktFloat + Default + FromStr,
-{
-    LineString::from_iter(line_string.0.iter().map(|coord| (coord.x, coord.y)))
+#[derive(Decode)]
+struct SbasPolygon {
+    name: String,
+    coordinates: Vec<(f64, f64)>,
 }
 
-#[cfg(feature = "sbas")]
-fn line_string<T>(name: &str) -> LineString<T>
-where
-    T: WktFloat + Default + FromStr,
-{
-    let mut res = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    res.push("data");
-    res.push(name);
-    let content = std::fs::read_to_string(res).unwrap();
-    let wkt = Wkt::from_str(&content).unwrap();
-    match wkt.item {
-        Geometry::LineString(line) => wkt_line_string_to_geo(&line),
-        _ => unreachable!(),
-    }
+#[derive(Default, Decode)]
+struct SbasMap {
+    polygons: Vec<SbasPolygon>,
 }
 
-#[cfg(feature = "sbas")]
-fn load_database() -> Vec<(Constellation, geo::Polygon)> {
-    let mut db: Vec<(Constellation, geo::Polygon)> = Vec::new();
-    let db_path = env!("CARGO_MANIFEST_DIR").to_owned() + "/data/";
-    let db_path = std::path::PathBuf::from(db_path);
-    for entry in std::fs::read_dir(db_path).unwrap() {
-        let entry = entry.unwrap();
-        let path = entry.path();
-        let fullpath = &path.to_str().unwrap();
-        let extension = path.extension().unwrap().to_str().unwrap();
-        let name = path.file_stem().unwrap().to_str().unwrap();
-        if extension.eq("wkt") {
-            let poly = geo::Polygon::<f64>::new(
-                line_string(fullpath), // exterior boundaries
-                vec![],
-            ); // dont care about interior
-            if let Ok(sbas) = Constellation::from_str(&name.to_uppercase()) {
-                db.push((sbas, poly))
-            }
-        }
-    }
-    db
-}
+static SBAS_POLYGONS: Lazy<SbasMap> = Lazy::new(|| {
+    let config = config::standard();
 
-#[cfg(feature = "sbas")]
-#[cfg_attr(docsrs, doc(cfg(feature = "sbas")))]
-/// Select an augmentation system conveniently, based on given location
-/// in decimal degrees
+    let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/sbas_polygons.bin"));
+
+    bincode::decode_from_slice(bytes, config)
+        .unwrap_or_else(|e| {
+            panic!("corrupt SBAS polygons database: {}", e);
+        })
+        .0
+});
+
+/// Helps select a SBAS (geostationary augmentation service) from user coordinates.
 /// ```
-/// extern crate gnss_rs as gnss;
-/// use gnss::prelude::*;
-/// use gnss::sbas_selection;
+/// use geo::Point;
+/// use gnss_rs::{
+///     prelude::*,
+///     sbas_selector,
+/// };
 ///
-/// let paris = (48.808378, 2.382682); // lat, lon [ddeg]
-/// let sbas = sbas_selection(paris.0, paris.1);
-/// assert_eq!(sbas, Some(Constellation::EGNOS));
+/// let paris = Point::new(2.38262, 48.808378); //x=longitude°, y=latitude°
+/// assert_eq!(sbas_selector(paris), Some(Constellation::EGNOS));
 ///
-/// let antartica = (-77.490631,  91.435181); // lat, lon [ddeg]
-/// let sbas = sbas_selection(antartica.0, antartica.1);
-/// assert_eq!(sbas.is_none(), true);
+/// let antarctica = Point::new(91.435181, -77.490631); //x=longitude°, y=latitude°
+/// assert_eq!(sbas_selector(antarctica), None);
 ///```
-pub fn sbas_selection(lat: f64, lon: f64) -> Option<Constellation> {
-    let db = load_database();
-    let point: geo::Point<f64> = point!(x: lon, y: lat,);
-    for (sbas, area) in db {
-        if area.contains(&point) {
-            return Some(sbas.clone());
+pub fn sbas_selector(point: Point) -> Option<Constellation> {
+    for entry in SBAS_POLYGONS.polygons.iter() {
+        let polygon = Polygon::new(LineString::from(entry.coordinates.clone()), vec![]);
+        if polygon.contains(&point) {
+            if let Ok(constellation) = Constellation::from_str(&entry.name) {
+                // errors will not happen here,
+                // because every single entrie is validated in CI
+                return Some(constellation);
+            }
         }
     }
     None
 }
 
-#[cfg(feature = "sbas")]
 #[cfg(test)]
 mod test {
-    use super::*;
+    use crate::{prelude::Constellation, sbas::SBAS_POLYGONS, sbas_selector};
+    use geo::Point;
+    use std::str::FromStr;
+
     #[test]
-    #[cfg(feature = "sbas")]
-    fn sbas_helper() {
-        // PARIS --> EGNOS
-        let sbas = sbas_selection(48.808378, 2.382682);
-        assert_eq!(sbas.is_some(), true);
-        assert_eq!(sbas.unwrap(), Constellation::EGNOS);
+    fn test_database() {
+        for entry in SBAS_POLYGONS.polygons.iter() {
+            assert!(
+                Constellation::from_str(&entry.name).is_ok(),
+                "invalid constellation name found \"{}\"",
+                entry.name
+            );
+        }
+    }
 
-        // ANTARICA --> NONE
-        let sbas = sbas_selection(-77.490631, 91.435181);
-        assert_eq!(sbas.is_none(), true);
-
-        // LOS ANGELES --> WAAS
-        let sbas = sbas_selection(33.981431, -118.193601);
-        assert_eq!(sbas.is_some(), true);
-        assert_eq!(sbas.unwrap(), Constellation::WAAS);
-
-        // ARGENTINA --> NONE
-        let sbas = sbas_selection(-23.216639, -63.170983);
-        assert_eq!(sbas.is_none(), true);
-
-        // NIGER --> ASBAS
-        let sbas = sbas_selection(10.714217, 17.087263);
-        assert_eq!(sbas.is_some(), true);
-        assert_eq!(sbas.unwrap(), Constellation::ASBAS);
-
-        // South AFRICA --> None
-        let sbas = sbas_selection(-32.473320, 21.112770);
-        assert_eq!(sbas.is_none(), true);
-
-        // India --> GAGAN
-        let sbas = sbas_selection(19.314290, 76.798953);
-        assert_eq!(sbas.is_some(), true);
-        assert_eq!(sbas.unwrap(), Constellation::GAGAN);
-
-        // South Indian Ocean --> None
-        let sbas = sbas_selection(-29.349172, 72.773447);
-        assert_eq!(sbas.is_none(), true);
-
-        // Australia --> SPAN
-        let sbas = sbas_selection(-27.579847, 131.334992);
-        assert_eq!(sbas.is_some(), true);
-        assert_eq!(sbas.unwrap(), Constellation::SPAN);
-        // NZ --> SPAN
-        let sbas = sbas_selection(-45.113525, 169.864842);
-        assert_eq!(sbas.is_some(), true);
-        assert_eq!(sbas.unwrap(), Constellation::SPAN);
-
-        // Central China: BDSBAS
-        let sbas = sbas_selection(34.462967, 98.172480);
-        assert_eq!(sbas, Some(Constellation::BDSBAS));
-
-        // South Korea: KASS
-        let sbas = sbas_selection(37.067846, 128.34);
-        assert_eq!(sbas, Some(Constellation::KASS));
-
-        // Japan: MSAS
-        let sbas = sbas_selection(36.081095, 138.274859);
-        assert_eq!(sbas, Some(Constellation::MSAS));
-
-        // Russia: SDCM
-        let sbas = sbas_selection(60.004390, 89.090326);
-        assert_eq!(sbas, Some(Constellation::SDCM));
+    #[test]
+    fn test_sbas_selector() {
+        for (lat_ddeg, long_ddeg, expected) in [
+            (48.808378, 2.38268, Some(Constellation::EGNOS)),
+            (33.981431, -118.193601, Some(Constellation::WAAS)),
+            (19.314290, 76.798953, Some(Constellation::GAGAN)),
+            (-27.579847, 131.334992, Some(Constellation::SPAN)),
+            (-45.113525, 169.864842, Some(Constellation::SPAN)),
+            (34.462967, 98.172480, Some(Constellation::GAGAN)),
+            (37.067846, 128.34, Some(Constellation::KASS)),
+            (36.081095, 138.274859, Some(Constellation::MSAS)),
+            (60.004390, 89.090326, Some(Constellation::SDCM)),
+            (-32.473320, 21.112770, Some(Constellation::ASBAS)),
+            (-23.216639, -63.170983, None), // argentina
+            (-77.490631, 91.435181, None),  // antarctica
+            (-29.349172, 72.773447, None),  // south indian ocean
+        ] {
+            assert_eq!(
+                sbas_selector(Point::new(long_ddeg, lat_ddeg)),
+                expected,
+                "invalid results for coordinates lat={}° long={}°",
+                lat_ddeg,
+                long_ddeg
+            );
+        }
     }
 }
