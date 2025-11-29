@@ -13,11 +13,19 @@ use hifitime::{Duration, Epoch};
 #[cfg(feature = "std")]
 use std::str::FromStr;
 
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
+
+#[cfg(feature = "python")]
+mod python;
+
 // #[cfg(feature = "cospar")]
 // use crate::prelude::COSPAR;
 
 /// ̀SV describes a Satellite Vehicle
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(feature = "python", pyclass)]
+#[cfg_attr(feature = "python", pyo3(module = "gnss"))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SV {
     /// PRN identification number for this vehicle

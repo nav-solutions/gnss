@@ -5,6 +5,12 @@ use thiserror::Error;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "python")]
+use pyo3::prelude::pyclass;
+
+#[cfg(feature = "python")]
+mod python;
+
 /// Constellation parsing & identification related errors
 #[derive(Error, Clone, Debug, PartialEq)]
 pub enum ParsingError {
@@ -14,6 +20,8 @@ pub enum ParsingError {
 
 /// Describes all known `GNSS` constellations
 #[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "python", pyclass)]
+#[cfg_attr(feature = "python", pyo3(module = "gnss"))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Constellation {
     /// American constellation
@@ -89,6 +97,8 @@ impl core::fmt::Display for Constellation {
     /// For example:
     /// - "GPS (US)" for american constellation
     /// - "Glonass (RU)" for russian constellation
+    ///
+    /// If you don't want the country code (example: "GPS" for american constellation), use [core::fmt::UpperExp] formatting.
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         match self {
             Self::GPS => write!(f, "GPS (US)"),

@@ -4,14 +4,16 @@
 [![Rust](https://github.com/nav-solutions/gnss/actions/workflows/daily.yml/badge.svg)](https://github.com/nav-solutions/gnss/actions/workflows/daily.yml)
 [![crates.io](https://img.shields.io/crates/v/gnss-rs.svg)](https://crates.io/crates/gnss-rs)
 [![crates.io](https://docs.rs/gnss-rs/badge.svg)](https://docs.rs/gnss-rs)
+[![discord server](https://img.shields.io/discord/1342922474110586910?logo=discord)](https://discord.gg/EqhEBXBmJh)
 
 [![License](https://img.shields.io/badge/license-MPL_2.0-orange?style=for-the-badge&logo=mozilla)](https://github.com/nav-solutions/qc-traits/blob/main/LICENSE)
 
-High level definitions to work with GNSS in Rust
+High level definitions to work with GNSS in Rust or Python
 
 + Space Vehicles definitions: `SV`
 + GNSS Constellations: `Constellation`
 + GNSS Timescales: `Constellation.timescale()`
++ Python casts using `python` feature
 
 ## Getting started
 
@@ -33,7 +35,7 @@ This feature requires `std` library.
 
 ## Constellation database
 
-This library defines both constellation and satellites from these constellations, in a single enum.
+This library defines both constellations (single enum) and satellites (SV structure) from these constellations.
 
 ```rust
 use std::str::FromStr;
@@ -55,10 +57,7 @@ assert_eq!(format!("{:x}", Constellation::GPS), "G"); // RINEX like format
 assert_eq!(Constellation::from_str("G"), Ok(Constellation::GPS)); // reciprocal
 assert_eq!(Constellation::from_str("GPS (US)"), Ok(Constellation::GPS)); // reciprocal
 
-// this type of information is only defined
-// for SBAS vehicles
-assert_eq!(sv.launch_datetime(), None); 
-
+assert_eq!(sv.launch_datetime(), None); // only available for GEO satellites (SBAS)
 ```
 
 ## SBAS (Geostationary services)
@@ -144,6 +143,43 @@ Amongst them, be sure to checkout:
 - [SP3](https://github.com/nav-solutions/sp3): files processing and management
 - [Hifitime](https://github.com/nyx-space/hifitime): Timescale and related calculations
 - [CGGTTS](https://github.com/nav-solutions/cggtts): files production and processing
+
+## Python bindings
+
+Install with maturin
+
+```bash
+maturin develop # local install
+```
+
+Install from pypi directly:
+
+```bash
+pip3 install gnss-rs
+```
+
+Getting started:
+
+```python
+from gnss import Constellation, SV, TimeScale
+
+gps = Constellation.GPS
+assert "{}".format(gps), "GPS (US)"
+assert "{:x}".format(gps), "GPS" # drop country code
+
+# smart builder
+assert Constellation.from_country_code("US"), Constellation.GPS
+
+# PRN# is not checked, it is up to you to create valid satellites.
+sat = SV(Constellation.GPS, 10)
+assert sat.prn == 10
+assert sat.timescale() == TimeScale.GPST
+
+sat.constellation = Constellation.BeiDou
+assert "{}".format(sat.constellation, "BeiDou (CH)")
+assert "{:x}".format(sat.constellation, "BDS") # drop country code
+assert sat.timescale() == TimeScale.BDT
+```
 
 ## License
 

@@ -12,21 +12,20 @@ edition = "2021"
 readme = "README.md"
 
 [features]
-default = []
+default = [] # no-std by default
 
-# no-std by default
 std = [
     "hifitime/std"
 ]
 
-# Enable COSPAR (launch #ID) definition
-# Requires the std library.
-cospar = [
-    "std"
-]
+# Enable COSPAR (launch #ID) definition. Requires std-lib.
+cospar = ["std"]
 
 # Enable DOMES (IGS station ID) number definition.
 domes = []
+
+# Enable pythonized structures
+python = ["std", "dep:pyo3", "hifitime/python"]
 
 # This feature enables the "sbas_selector" function,
 # to select the locally available SBAS service, from ground coordinates.
@@ -37,6 +36,14 @@ sbas = [
     "dep:geojson", 
     "dep:bincode", 
     "dep:once_cell", 
+]
+
+# Feature we use to run our tests
+all-but-python = [
+    "sbas",
+    "domes",
+    "cospar",
+    "std",
 ]
 
 [package.metadata.docs.rs]
@@ -54,8 +61,10 @@ serde_json = { version = "1", features = ["preserve_order"] }
 thiserror = "2"
 hifitime = "4.1"
 lazy_static = "1"
+serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
+wkt = { version = "0.10", default-features = false, optional = true }
+pyo3 = { version = "0.27", features = ["extension-module"], optional = true }
 geo = { version = "0.31", optional = true }
 bincode = { version = "2", optional = true }
 once_cell = { version = "1", optional = true }
 geojson = { version = "0.24", optional = true }
-serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
