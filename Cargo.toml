@@ -59,7 +59,7 @@ hifitime = "4.1"
 lazy_static = "1"
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 wkt = { version = "0.10", default-features = false, optional = true }
-pyo3 = { version = "0.25", features = ["extension-module"], optional = true }
+pyo3 = { version = "0.27", features = ["extension-module"], optional = true }
 geo = { version = "0.31", optional = true }
 bincode = { version = "2", optional = true }
 once_cell = { version = "1", optional = true }
