@@ -146,6 +146,12 @@ Amongst them, be sure to checkout:
 
 ## Python bindings
 
+Install with maturin
+
+```bash
+maturin develop # local install
+```
+
 Install from pypi directly:
 
 ```bash
