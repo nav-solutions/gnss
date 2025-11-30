@@ -3,6 +3,12 @@ use thiserror::Error;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "python")]
+mod python;
+
+#[cfg(feature = "python")]
+use pyo3::prelude::pyclass;
+
 /// DOMES parsing error
 #[derive(Debug, Error)]
 pub enum Error {
@@ -15,6 +21,8 @@ pub enum Error {
 
 /// DOMES site reference point.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(feature = "python", pyclass)]
+#[cfg_attr(feature = "python", pyo3(module = "gnss"))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TrackingPoint {
     /// Monument (pole, pillar, geodetic marker..)
@@ -30,6 +38,8 @@ pub enum TrackingPoint {
 /// DOMES site identification number,
 /// see <https://itrf.ign.fr/en/network/domes/description>.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "python", pyclass)]
+#[cfg_attr(feature = "python", pyo3(module = "gnss"))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct DOMES {
     /// Area / Country code (3 digits)
@@ -43,6 +53,24 @@ pub struct DOMES {
 
     /// Sequential number (3 digits)
     pub sequential: u16,
+}
+
+impl core::fmt::LowerHex for TrackingPoint {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        match self {
+            TrackingPoint::Monument => write!(f, "M"),
+            TrackingPoint::Instrument => write!(f, "S"),
+        }
+    }
+}
+
+impl core::fmt::Display for TrackingPoint {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        match self {
+            TrackingPoint::Monument => write!(f, "Monument"),
+            TrackingPoint::Instrument => write!(f, "Instrument"),
+        }
+    }
 }
 
 impl core::str::FromStr for DOMES {
@@ -73,14 +101,10 @@ impl core::str::FromStr for DOMES {
 
 impl core::fmt::Display for DOMES {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        let point = match self.point {
-            TrackingPoint::Monument => 'M',
-            TrackingPoint::Instrument => 'S',
-        };
         write!(
             f,
-            "{:03}{:02}{}{:03}",
-            self.area, self.site, point, self.sequential
+            "{:03}{:02}{:x}{:03}",
+            self.area, self.site, self.point, self.sequential
         )
     }
 }

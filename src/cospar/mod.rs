@@ -5,10 +5,10 @@ use thiserror::Error;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "python")]
-use pyo3::{pymethods, PyResult};
+use pyo3::prelude::pyclass;
 
 #[cfg(feature = "python")]
-use pyo3::prelude::pyclass;
+mod python;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -81,43 +81,6 @@ impl core::str::FromStr for COSPAR {
             code: rem[4..].trim().to_string(),
         })
     }
-}
-
-#[cfg_attr(feature = "python", pymethods)]
-impl COSPAR {
-    /// Builds a new [COSPAR] identification number.
-    /// The launch sequence number should be a 3 letter code (unchecked).
-    #[new]
-    fn py_new(year: u16, launch: u16, code: &str) -> Self {
-        Self {
-            year,
-            launch,
-            code: code.to_string(),
-        }
-    }
-
-    fn __str__(&self) -> String {
-        format!("{}", self)
-    }
-
-    fn __format__(&self, _specs: &str) -> PyResult<String> {
-        Ok(format!("{}", self))
-    }
-
-    // #[getter(year)]
-    // fn py_get(&self) -> u16 {
-    //     self.year
-    // }
-    //
-    // #[getter(launch)]
-    // fn py_get(&self) -> u16 {
-    //     self.launch
-    // }
-    //
-    // #[getter(code)]
-    // fn py_get(&self) -> &str {
-    //     self.code
-    // }
 }
 
 #[cfg(test)]
