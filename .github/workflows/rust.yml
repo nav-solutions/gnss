@@ -42,9 +42,19 @@ jobs:
       run: cargo fmt --all -- --check
     - name: Documentation
       run: cargo doc --all-features
-    - name: Python package
+
+    - name: Build python bindings
+      uses: PyO3/maturin-action@v1
+      with:
+        target: x86_64
+        args: --release --out dist --find-interpreter -F python
+        before-script-linux: |
+          sudo apt-get update -y && sudo apt-get install -y libssl-dev openssl pkg-config
+          
+    - name: pytest (x86_64)
+      shell: bash
       run: |
-        maturin develop
+        pip install pytest
         pytest
   
   release:
