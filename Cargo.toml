@@ -38,14 +38,6 @@ sbas = [
     "dep:once_cell", 
 ]
 
-# Feature we use to run our tests
-all-but-python = [
-    "sbas",
-    "domes",
-    "cospar",
-    "std",
-]
-
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docrs", "--generate-link-to-definition"]

@@ -13,9 +13,7 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
     - name: install python
@@ -33,7 +31,7 @@ jobs:
     - name: Build (Python)
       run: cargo build --features python
     - name: Tests
-      run: cargo test --features all-but-python
+      run: cargo test --all-features
     - name: Coding style
       run: cargo fmt --all -- --check
     - name: Documentation
