@@ -20,6 +20,8 @@ jobs:
       run: pip install pytest
     - name: Build
       run: cargo build
+    - name: Build (all features)
+      run: cargo build --all-features
     - name: Build (STD)
       run: cargo build --features std
     - name: Build (SBAS)
@@ -31,11 +33,15 @@ jobs:
     - name: Build (Python)
       run: cargo build --features python
     - name: Tests
-      run: cargo test --all-features
+      run: cargo test --features std sbas domes cospar
     - name: Coding style
       run: cargo fmt --all -- --check
     - name: Documentation
       run: cargo doc --all-features
+    - name: Python package
+      run: |
+        maturin develop
+        pytest
   
   release:
     name: Release
