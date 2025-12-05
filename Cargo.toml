@@ -14,9 +14,8 @@ readme = "README.md"
 [features]
 default = [] # no-std by default
 
-std = [
-    "hifitime/std"
-]
+# Build with std-lib
+std = ["hifitime/std"]
 
 # Enable COSPAR (launch #ID) definition. Requires std-lib.
 cospar = ["std"]
