@@ -38,6 +38,9 @@ sbas = [
     "dep:once_cell", 
 ]
 
+# Everything but python bindings
+full = ["sbas", "domes", "cospar"]
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docrs", "--generate-link-to-definition"]
