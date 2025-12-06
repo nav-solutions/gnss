@@ -38,20 +38,20 @@ jobs:
       run: cargo fmt --all -- --check
     - name: Documentation
       run: cargo doc --all-features
-
-  python:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
     - name: Python dependencies
+      continue-on-error: true
       run: sudo apt-get update -y && sudo apt-get install -y libssl-dev openssl pkg-config
     - name: Install pytest
+      continue-on-error: true
       run: pip install pytest
     - name: Install maturin
+      continue-on-error: true
       run: cargo install maturin
     - name: Install library
+      continue-on-error: true
       run: maturin develop --all-features
     - name: Run pytest
+      continue-on-error: true
       run: pytest
 
   release:
