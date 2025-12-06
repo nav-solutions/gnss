@@ -4,6 +4,12 @@ use thiserror::Error;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "python")]
+use pyo3::prelude::pyclass;
+
+#[cfg(feature = "python")]
+mod python;
+
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Invalid COSPAR number")]
@@ -12,30 +18,41 @@ pub enum Error {
 
 /// COSPAR ID number
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "python", pyclass)]
+#[cfg_attr(feature = "python", pyo3(module = "gnss"))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct COSPAR {
     /// Launch year
-    year: u16,
+    pub year: u16,
 
     /// Launch number for that year, in chronological order.
-    launch: u16,
+    pub launch: u16,
 
     /// Up to three letter code representing the sequential
     /// identifier of a piece in a Launch.
-    code: String,
+    pub code: String,
 }
 
 impl COSPAR {
-    /// Define a new [COSPAR] number from
-    /// - year: satellite launch year
-    /// - number: the launch number for that year, in chronological order.
-    /// - code: a 3 letter code
-    pub fn new(year: u16, number: u16, code: &str) -> Self {
-        Self {
-            year,
-            launch: number,
-            code: code.to_string(),
-        }
+    /// Define a new [COSPAR] with updated year of launch.
+    pub fn with_launch_year(&self, year: u16) -> Self {
+        let mut s = self.clone();
+        s.year = year;
+        s
+    }
+
+    /// Define a new [COSPAR] with updated launch number (in that year).
+    pub fn with_launch_number(&self, launch: u16) -> Self {
+        let mut s = self.clone();
+        s.launch = launch;
+        s
+    }
+
+    /// Define a new [COSPAR] with updated 3 letter launch sequential code.
+    pub fn with_launch_code(&self, code: &str) -> Self {
+        let mut s = self.clone();
+        s.code = code.to_string();
+        s
     }
 }
 

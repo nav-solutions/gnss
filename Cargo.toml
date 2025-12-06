@@ -14,9 +14,8 @@ readme = "README.md"
 [features]
 default = [] # no-std by default
 
-std = [
-    "hifitime/std"
-]
+# Build with std-lib
+std = ["hifitime/std"]
 
 # Enable COSPAR (launch #ID) definition. Requires std-lib.
 cospar = ["std"]
@@ -25,7 +24,7 @@ cospar = ["std"]
 domes = []
 
 # Enable pythonized structures
-python = ["std", "dep:pyo3", "hifitime/python"]
+python = ["std", "dep:pyo3", "hifitime/python", "domes", "cospar"]
 
 # This feature enables the "sbas_selector" function,
 # to select the locally available SBAS service, from ground coordinates.
@@ -38,13 +37,8 @@ sbas = [
     "dep:once_cell", 
 ]
 
-# Feature we use to run our tests
-all-but-python = [
-    "sbas",
-    "domes",
-    "cospar",
-    "std",
-]
+# Everything but python bindings
+full = ["sbas", "domes", "cospar"]
 
 [package.metadata.docs.rs]
 all-features = true

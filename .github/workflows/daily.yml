@@ -44,22 +44,3 @@ jobs:
     - name: ${{ matrix.name }} 
       run: |
         cargo clean && cargo update && cargo build ${{ matrix.opts }}
-   
-  tests:
-    name: Tests
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions-rs/toolchain@v1
-      name: Install Rust
-      with:
-        toolchain: stable
-        override: true
-    - name: Install Dependencies
-      run: |
-        sudo apt-get update
-    - uses: actions-rs/cargo@v1
-      name: Test (all features)
-      with:
-        command: test
-        args: --all-features

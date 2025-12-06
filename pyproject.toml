@@ -1,10 +1,10 @@
 [build-system]
-requires = ["maturin>=1.7,<1.8"]
+requires = ["maturin>=1.5"]
 build-backend = "maturin"
 
 [tool.maturin]
 profile = "release"
-features = ["python", "pyo3/extension-module"]
+features = ["python", "pyo3/extension-module", "domes", "cospar"]
 
 [project]
 name = "gnss_rs"
