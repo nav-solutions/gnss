@@ -45,6 +45,7 @@ jobs:
       shell: bash
       run: |
         pip install pytest
+        cargo install maturin
         maturin develop --all-features
         pytest
   
