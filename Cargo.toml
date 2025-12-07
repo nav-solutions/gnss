@@ -45,7 +45,6 @@ all-features = true
 rustdoc-args = ["--cfg", "docrs", "--generate-link-to-definition"]
 
 [build-dependencies]
-hifitime = "4.1"
 geojson = { version = "0.24" }
 bincode = { version = "2", optional = true }
 serde = { version = "1", default-features = false, features = ["derive"] }
@@ -53,7 +52,7 @@ serde_json = { version = "1", features = ["preserve_order"] }
 
 [dependencies]
 thiserror = "2"
-hifitime = "4.1"
+hifitime = { git = "https://github.com/nyx-space/hifitime", rev = "501f3a012c60d3ca26446fc37270adb8782bfd5b" }
 lazy_static = "1"
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 wkt = { version = "0.10", default-features = false, optional = true }
