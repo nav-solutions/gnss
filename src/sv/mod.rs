@@ -23,7 +23,7 @@ mod python;
 // use crate::prelude::COSPAR;
 
 /// ̀SV describes a Satellite Vehicle
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "python", pyclass)]
 #[cfg_attr(feature = "python", pyo3(module = "gnss"))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -269,6 +269,22 @@ impl core::fmt::LowerHex for SV {
     }
 }
 
+impl PartialOrd for SV {
+    fn partial_cmp(&self, rhs: &Self) -> Option<std::cmp::Ordering> {
+        if self.constellation.is_sbas() && rhs.constellation.is_sbas() {
+            // only PRN based comparison
+            Some(self.prn.partial_cmp(&rhs.prn)?)
+        } else {
+            if self.constellation == rhs.constellation {
+                Some(self.prn.partial_cmp(&rhs.prn)?)
+            } else {
+                Some(self.constellation.partial_cmp(&rhs.constellation)?)
+            }
+        }
+    }
+}
+
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -348,6 +364,7 @@ mod test {
             );
         }
     }
+
     #[test]
     fn test_beidou_geo() {
         assert_eq!(SV::from_str("G01").unwrap().is_beidou_geo(), false);
@@ -358,5 +375,18 @@ mod test {
         assert_eq!(SV::from_str("C48").unwrap().is_beidou_geo(), false);
         assert_eq!(SV::from_str("C59").unwrap().is_beidou_geo(), true);
         assert_eq!(SV::from_str("C60").unwrap().is_beidou_geo(), true);
+    }
+
+    #[test]
+    fn sv_ordering() {
+        assert!(SV::from_str("G04").unwrap() > SV::from_str("G01").unwrap());
+        assert!(SV::from_str("G04").unwrap() > SV::from_str("G02").unwrap());
+        assert!(SV::from_str("G04").unwrap() > SV::from_str("G03").unwrap());
+        assert!(SV::from_str("G04").unwrap() >= SV::from_str("G04").unwrap());
+        
+        assert!(SV::from_str("S36").unwrap() > SV::from_str("S23").unwrap());
+        assert!(SV::from_str("S23").unwrap() < SV::from_str("S36").unwrap());
+        assert!(SV::from_str("S22").unwrap() < SV::from_str("S23").unwrap());
+        assert!(SV::from_str("S36").unwrap() < SV::from_str("S43").unwrap());
     }
 }
