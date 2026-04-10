@@ -272,7 +272,7 @@ impl core::fmt::LowerHex for SV {
 impl PartialOrd for SV {
     fn partial_cmp(&self, rhs: &Self) -> Option<std::cmp::Ordering> {
         if self.constellation.is_sbas() && rhs.constellation.is_sbas() {
-            // only PRN based comparison
+            // comparison is based on PRN number only
             Some(self.prn.partial_cmp(&rhs.prn)?)
         } else {
             if self.constellation == rhs.constellation {
@@ -283,7 +283,6 @@ impl PartialOrd for SV {
         }
     }
 }
-
 
 #[cfg(test)]
 mod test {
@@ -383,7 +382,7 @@ mod test {
         assert!(SV::from_str("G04").unwrap() > SV::from_str("G02").unwrap());
         assert!(SV::from_str("G04").unwrap() > SV::from_str("G03").unwrap());
         assert!(SV::from_str("G04").unwrap() >= SV::from_str("G04").unwrap());
-        
+
         assert!(SV::from_str("S36").unwrap() > SV::from_str("S23").unwrap());
         assert!(SV::from_str("S23").unwrap() < SV::from_str("S36").unwrap());
         assert!(SV::from_str("S22").unwrap() < SV::from_str("S23").unwrap());
