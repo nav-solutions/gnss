@@ -70,7 +70,8 @@ pub enum Constellation {
     /// South-PAN Autralia and New-Zealand Geostationary service
     SPAN,
 
-    /// Undetermined or generic Geostationary service.
+    /// "SBAS" is used for geosatellites that are not known to our
+    /// geosat database
     SBAS,
 
     /// Australia and New-Zealand geoscience service
@@ -85,8 +86,7 @@ pub enum Constellation {
     /// Algerian Geostationary service
     ASAL,
 
-    /// Describes the combination of [Constellation]s,
-    /// used by modern receivers and RINEX files.
+    /// "Mixed" describes the combination of several [Constellation]s
     Mixed,
 }
 
@@ -346,9 +346,15 @@ impl Constellation {
         *self == Self::Mixed
     }
 
-    /// Returns the [TimeScale] this [Constellation] represents.
-    /// Returns [None] when this operation does not apply to given [Constellation].
-    /// [Constellation::SBAS] are said to be refered to [TimeScale::GPST]
+    /// Returns the [TimeScale] this [Constellation] uses or represents.
+    /// When we say "uses", we imply it is the prefered timescale during
+    /// solutions solving.
+    ///
+    /// This method returns [None] for GNSS systems for which the [TimeScale]
+    /// is not defined yet.
+    ///
+    /// This method returns [TimeScale::GPST] for geo satellites, for the main
+    /// reason that it is the intended and prefered [TimeScale] to resolve those satellites.
     pub fn timescale(&self) -> Option<TimeScale> {
         match self {
             Self::GPS => Some(TimeScale::GPST),
@@ -358,6 +364,7 @@ impl Constellation {
             Self::Glonass => Some(TimeScale::UTC),
             c => {
                 if c.is_sbas() {
+                    // GPST is used in the naviga
                     Some(TimeScale::GPST)
                 } else {
                     None
@@ -390,15 +397,13 @@ impl core::str::FromStr for Constellation {
             Ok(Self::GPS)
         } else if s.contains("glo") {
             Ok(Self::Glonass)
-        } else if s.contains("glonass") {
-            Ok(Self::Glonass)
         } else if s.contains("beidou") {
             Ok(Self::BeiDou)
         } else if s.contains("bdsbas") {
             Ok(Self::BDSBAS)
         } else if s.contains("bds") {
             Ok(Self::BeiDou)
-        } else if s.contains("galileo") {
+        } else if s.contains("gal") {
             Ok(Self::Galileo)
         } else if s.contains("qzss") {
             Ok(Self::QZSS)
@@ -415,10 +420,6 @@ impl core::str::FromStr for Constellation {
         } else if s.contains("aus/nz") {
             Ok(Self::AusNZ)
         } else if s.contains("australia") {
-            Ok(Self::SPAN)
-        } else if s.contains("new-zealand") {
-            Ok(Self::SPAN)
-        } else if s.contains("new zealand") {
             Ok(Self::SPAN)
         } else if s.contains("waas") {
             Ok(Self::WAAS)
@@ -437,6 +438,8 @@ impl core::str::FromStr for Constellation {
         } else if s.contains("nsas") {
             Ok(Self::NSAS)
         } else if s.contains("span") {
+            Ok(Self::SPAN)
+        } else if s.contains("new") && s.contains("zealand") {
             Ok(Self::SPAN)
         } else if s.contains("asbas") {
             Ok(Self::ASBAS)
@@ -497,6 +500,7 @@ mod tests {
             (Constellation::GPS, "GPS (US)", "GPS", "G"),
             (Constellation::Glonass, "Glonass (RU)", "GLO", "R"),
             (Constellation::BeiDou, "BeiDou (CH)", "BDS", "C"),
+            (Constellation::SBAS, "SBAS", "SBAS", "S"),
         ] {
             assert_eq!(constellation.to_string(), displayed);
             assert_eq!(format!("{:E}", constellation), upper_exp);
