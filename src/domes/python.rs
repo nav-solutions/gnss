@@ -1,5 +1,5 @@
-use crate::domes::{TrackingPoint, DOMES};
-use pyo3::{pymethods, PyResult};
+use crate::domes::{DOMES, TrackingPoint};
+use pyo3::{PyResult, pymethods};
 
 #[pymethods]
 impl TrackingPoint {

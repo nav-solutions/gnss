@@ -111,7 +111,7 @@ impl core::fmt::Display for DOMES {
 
 #[cfg(test)]
 mod test {
-    use super::{TrackingPoint, DOMES};
+    use super::{DOMES, TrackingPoint};
     use std::str::FromStr;
     #[test]
     fn parser() {
