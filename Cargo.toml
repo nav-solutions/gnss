@@ -8,7 +8,7 @@ homepage = "https://github.com/nav-solutions"
 repository = "https://github.com/nav-solutions/gnss"
 keywords = ["gnss", "science", "no-std", "gps"]
 categories = ["science", "science::geo"]
-edition = "2021"
+edition = "2024"
 readme = "README.md"
 
 [features]
