@@ -77,7 +77,7 @@ lazy_static! {
 use geojson::{Feature, GeoJson, Value};
 
 #[cfg(feature = "sbas")]
-use bincode::{config, Encode};
+use bincode::{Encode, config};
 
 #[cfg(feature = "sbas")]
 #[derive(Encode)]
