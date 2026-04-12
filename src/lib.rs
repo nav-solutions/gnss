@@ -42,7 +42,7 @@ pub mod prelude {
     pub use crate::cospar::COSPAR;
 
     #[cfg(feature = "domes")]
-    pub use crate::domes::{TrackingPoint as DOMESTrackingPoint, DOMES};
+    pub use crate::domes::{DOMES, TrackingPoint as DOMESTrackingPoint};
 
     pub use hifitime::prelude::{Epoch, TimeScale};
 }

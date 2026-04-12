@@ -1,6 +1,6 @@
 [package]
 name = "gnss-rs"
-version = "2.6.0"
+version = "2.7.0"
 license = "MPL-2.0"
 authors = ["Guillaume W. Bres <guillaume.bressaix@gmail.com>"]
 description = "GNSS constellations"
@@ -8,7 +8,7 @@ homepage = "https://github.com/nav-solutions"
 repository = "https://github.com/nav-solutions/gnss"
 keywords = ["gnss", "science", "no-std", "gps"]
 categories = ["science", "science::geo"]
-edition = "2021"
+edition = "2024"
 readme = "README.md"
 
 [features]

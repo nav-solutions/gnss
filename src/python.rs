@@ -1,4 +1,4 @@
-use crate::prelude::{Constellation, DOMESTrackingPoint, Epoch, TimeScale, COSPAR, DOMES, SV};
+use crate::prelude::{COSPAR, Constellation, DOMES, DOMESTrackingPoint, Epoch, SV, TimeScale};
 use pyo3::prelude::*;
 
 #[pymodule]

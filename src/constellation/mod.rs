@@ -208,7 +208,7 @@ impl core::fmt::LowerHex for Constellation {
 }
 
 impl Constellation {
-    /// Returns true if Self is an augmentation system
+    /// Returns true if Self is SBAS augmentation system.
     pub fn is_sbas(&self) -> bool {
         // verifies this is not part of a regular GNSS (shorter list)
         !matches!(

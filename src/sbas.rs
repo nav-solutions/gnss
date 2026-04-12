@@ -1,5 +1,5 @@
 //! SBAS (geo service) selector helper.
-use bincode::{config, Decode};
+use bincode::{Decode, config};
 
 use crate::prelude::Constellation;
 use core::str::FromStr;

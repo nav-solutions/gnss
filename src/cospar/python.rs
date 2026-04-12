@@ -1,5 +1,5 @@
 use crate::prelude::COSPAR;
-use pyo3::{pymethods, PyResult};
+use pyo3::{PyResult, pymethods};
 
 #[pymethods]
 impl COSPAR {
