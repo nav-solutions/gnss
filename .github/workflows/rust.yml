@@ -24,8 +24,6 @@ jobs:
         args: --all -- --check
     
     - uses: actions-rs/toolchain@v1
-    
-    - uses: actions-rs/toolchain@v1
       name: Install Rust
       with:
         toolchain: 1.85.0
