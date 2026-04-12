@@ -198,20 +198,23 @@ impl core::str::FromStr for SV {
     fn from_str(string: &str) -> Result<Self, Self::Err> {
         let constellation = Constellation::from_str(&string[0..1])?;
 
-        if let Ok(prn) = string[1..].trim().parse::<u8>() {
-            let mut ret = SV::new(constellation, prn);
-            if constellation.is_sbas() {
-                // map the SXX to meaningful SBAS
-                if let Some(sbas) = SV::sbas_definitions(prn) {
-                    // this can't fail because the SBAS database only
-                    // contains valid Constellations
-                    ret.constellation = Constellation::from_str(sbas.constellation).unwrap();
-                }
+        let prn = string[1..]
+            .trim()
+            .parse::<u8>()
+            .map_err(|_| ParsingError::PrnParsing)?;
+
+        let mut ret = SV::new(constellation, prn);
+
+        if constellation.is_sbas() {
+            // map the SXX to meaningful SBAS
+            if let Some(sbas) = SV::sbas_definitions(prn) {
+                // this can't fail because the SBAS database only
+                // contains valid Constellations
+                ret.constellation = Constellation::from_str(sbas.constellation).unwrap();
             }
-            Ok(ret)
-        } else {
-            Err(ParsingError::PrnParsing)
         }
+
+        Ok(ret)
     }
 }
 
