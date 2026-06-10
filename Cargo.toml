@@ -52,12 +52,12 @@ serde_json = { version = "1", features = ["preserve_order"] }
 
 [dependencies]
 thiserror = "2"
-hifitime = "4.2"
+hifitime = "4"
 lazy_static = "1"
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
-wkt = { version = "0.10", default-features = false, optional = true }
-pyo3 = { version = "0.27", features = ["extension-module"], optional = true }
+wkt = { version = "0.14", default-features = false, optional = true }
+pyo3 = { version = "0.28", features = ["extension-module"], optional = true }
 geo = { version = "0.31", optional = true }
 bincode = { version = "2", optional = true }
 once_cell = { version = "1", optional = true }
-geojson = { version = "0.24", optional = true }
+geojson = { version = "1", optional = true }
