@@ -18,6 +18,9 @@ pub enum ParsingError {
     Unknown,
 }
 
+#[cfg(docsrs)]
+use std::str::FromStr;
+
 /// Describes all known `GNSS` constellations
 #[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "python", pyclass)]
@@ -144,7 +147,7 @@ impl core::fmt::UpperExp for Constellation {
     /// - "SPAN" for australian and NZ geo service
     /// - "AUS/NZ" for australian and NZ geoscience service
     /// - "GBAS" for UK geo service
-    /// - "MIX" for [Constellation::MIXED] setup
+    /// - "MIX" for [Constellation::Mixed] setup
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         match self {
             Self::GPS => write!(f, "GPS"),
@@ -185,7 +188,7 @@ impl core::fmt::LowerHex for Constellation {
     /// - 'J' for [Constellation::QZSS]
     /// - 'I' for [Constellation::IRNSS]
     /// - 'S' for any [Constellation::SBAS]
-    /// - 'M' for any [Constellation::MIXED]
+    /// - 'M' for any [Constellation::Mixed]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         match self {
             Self::GPS => write!(f, "G"),
