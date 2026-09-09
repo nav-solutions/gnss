@@ -110,7 +110,7 @@ impl SV {
         }
     }
 
-    /// Returns [Timescale] to which [Self] belongs to.
+    /// Returns [TimeScale] to which [Self] belongs to.
     /// ```
     /// extern crate gnss_rs as gnss;
     ///
